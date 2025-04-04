@@ -11,7 +11,26 @@
   "dependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.2.4"
+    "next": "15.2.4",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@mui/material": "^7.0.1",
+    "@radix-ui/react-alert-dialog": "^1.1.2",
+    "@radix-ui/react-dialog": "^1.1.2",
+    "@radix-ui/react-icons": "^1.3.0",
+    "@radix-ui/react-tooltip": "^1.1.3",
+    "axios": "^1.6.7",
+    "cbor-x": "^1.5.8",
+    "jquery": "^3.7.1",
+    "lucid-cardano": "^0.10.11",
+    "next": "15.2.4",
+    "next-transpile-modules": "^10.0.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "react-icons": "^5.5.0",
+    "react-toastify": "^11.0.5",
+    "sonner": "^2.0.3",
+    "tw-animate-css": "^1.2.5"
   },
   "devDependencies": {
     "typescript": "^5",
