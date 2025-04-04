@@ -39,9 +39,13 @@ export default function RootLayout({
             <SmartContractProvider>
               <Backgrounds>
               <Header />
-                <div id="main" className="bg-transparent">
-                  <div>{children}</div>
-                </div>
+                <div
+                id="main"
+                className="bg-transparent flex justify-center items-center min-h-screen"
+              >
+                <div>{children}</div>
+              </div>
+
                 <Footer />
               </Backgrounds>
               <Toaster />

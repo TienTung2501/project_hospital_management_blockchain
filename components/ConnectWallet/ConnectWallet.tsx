@@ -74,8 +74,6 @@ const ConnectWallet = () => {
       });
     }
   };
-  console.log(`wallet item: ${walletItem}`)
-  console.log(`wallet loading: ${loadingConnectWallet}`)
   // Auto refresh
   // useEffect(() => {
   //   const fetchWallet = async () => {

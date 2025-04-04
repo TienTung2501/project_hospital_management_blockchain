@@ -6,10 +6,13 @@ type Props = {
     description: string;
     mediaType: string;
     imageUrl: string;
+    dateOfDocument:string;
+    encryptKey:string;
+    hashCIP:string;
     customMetadata: any;
 };
 
-const mintAssetService = async function ({ lucid, title, description, imageUrl, mediaType, customMetadata }: Props): Promise<any> {
+const mintAssetService = async function ({ lucid, title, description, imageUrl,hashCIP,dateOfDocument, mediaType,encryptKey, customMetadata }: Props): Promise<any> {
     try {
         if (lucid) {
             const { paymentCredential }: any = lucid.utils.getAddressDetails(await lucid.wallet.address());
@@ -32,7 +35,10 @@ const mintAssetService = async function ({ lucid, title, description, imageUrl, 
                     [title]: {
                         name: title,
                         description: description,
-                        image: imageUrl,
+                        documentLink: imageUrl,
+                        dateOfDocument:dateOfDocument,
+                        hashCIP: hashCIP,
+                        encryptKey:encryptKey,
                         mediaType: mediaType,
                         ...cleanedData,
                     },

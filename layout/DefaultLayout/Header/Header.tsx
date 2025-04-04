@@ -26,7 +26,7 @@ export default function Header() {
           <Link href="/home" className="menu-item">Home</Link>
           <Link href="/bidding" className="menu-item">Bidding</Link>
           <Link href="/voting" className="menu-item">Voting</Link>
-          <Link href="/minting-asset" className="menu-item">Create</Link>
+          <Link href="/mint" className="menu-item">Create</Link>
           <Link href="/more" className="menu-item flex items-center">More <FaCaretDown className="ml-1" /></Link>
         </nav>
 

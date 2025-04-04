@@ -8,6 +8,18 @@ export type WalletItemType = {
     walletApi: () => Promise<any> | any;
     walletCheckApi: () => Promise<any> | any;
 };
+export type MetadataObject ={
+    key?: string;
+    value?: string;
+}
+
+export type NFTMintInfor ={
+    fileURL?: string | null;
+    title?: string;
+    mediaType?: string;
+    desc?: string;
+    metadata?: MetadataObject[];
+};
 export type NftItemType = {
     assetName: string;
     authorAddress?: string;

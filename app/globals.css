@@ -15,3 +15,8 @@
 .Toastify__toast-container--top-right {
   top: 5rem !important;
 }
+@media print {
+  body {
+    display: none !important;  /* Ẩn nội dung khi in */
+  }
+}

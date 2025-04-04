@@ -32,14 +32,20 @@ export type SmartContractType ={
         title,
         description,
         imageUrl,
+        hashCIP,
+        dateOfDocument,
+        encryptKey,
         mediaType,
         customMetadata,
     }: {
         lucid: Lucid;
         title: string;
         description: string;
+        encryptKey:string;
+        dateOfDocument:string;
         mediaType: string;
         imageUrl: string;
+        hashCIP:string;
         customMetadata: any;
     }) => Promise<any>;
 

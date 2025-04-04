@@ -1,4 +1,5 @@
 import { C, Data, Lucid, getAddressDetails, networkToId,Credential as LucidCredential } from "lucid-cardano";
+import CryptoJS from "crypto-js";
 
 export const CredentialSchema = Data.Enum([
     Data.Object({ VerificationKeyCredential: Data.Tuple([Data.Bytes()]) }),
@@ -92,4 +93,86 @@ function getCredential(credential: LucidCredential): Credential {
       .to_address()
       .to_bech32(undefined);
   }
-  
+
+ // utils/encryption.ts
+// export async function encryptFile(file: File, key: string): Promise<Blob> {
+//   const arrayBuffer = await file.arrayBuffer();
+
+//   const wordArray = CryptoJS.lib.WordArray.create(arrayBuffer);
+//   const encrypted = CryptoJS.AES.encrypt(wordArray, key).toString();
+
+//   const encryptedBlob = new Blob([encrypted], { type: "text/plain" }); // để đảm bảo IPFS nhận được file text
+//   return encryptedBlob;
+// }
+export async function encryptFile(file: File, key: string): Promise<Blob> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const base64String = reader.result as string;
+
+      const encrypted = CryptoJS.AES.encrypt(base64String, key).toString();
+      const encryptedBlob = new Blob([encrypted], { type: "text/plain" });
+      resolve(encryptedBlob);
+    };
+
+    reader.onerror = (err) => reject(err);
+
+    reader.readAsDataURL(file); // đọc file thành chuỗi base64 "data:application/pdf;base64,..."
+  });
+}
+// utils/encryption.ts
+export async function decryptFile(encryptedBase64: string, aesKey: string): Promise<Blob> {
+  try {
+    const decrypted = CryptoJS.AES.decrypt(encryptedBase64, aesKey).toString(CryptoJS.enc.Utf8);
+
+    if (!decrypted.startsWith("data:")) {
+      throw new Error("Giải mã sai hoặc AES key không đúng");
+    }
+
+    const [prefix, base64] = decrypted.split(",");
+    const mimeMatch = prefix.match(/data:(.*);base64/);
+    const mimeType = mimeMatch ? mimeMatch[1] : "application/octet-stream";
+
+    const binary = atob(base64);
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) {
+      bytes[i] = binary.charCodeAt(i);
+    }
+
+    return new Blob([bytes], { type: mimeType });
+  } catch (err) {
+    console.error("Lỗi giải mã:", err);
+    throw err;
+  }
+}
+
+
+// export async function decryptFile(encryptedBase64: string, aesKey: string): Promise<Blob> {
+//   try {
+//     const decrypted = CryptoJS.AES.decrypt(encryptedBase64, aesKey).toString(CryptoJS.enc.Utf8);
+    
+//     if (!decrypted.startsWith("data:")) {
+//       throw new Error("Định dạng base64 không hợp lệ hoặc AES key sai");
+//     }
+
+//     // Tách phần data URL: "data:application/pdf;base64,..."
+//     const [prefix, base64] = decrypted.split(",");
+
+//     // Lấy MIME type từ phần đầu
+//     const mimeMatch = prefix.match(/data:(.*);base64/);
+//     const mimeType = mimeMatch ? mimeMatch[1] : "application/pdf";
+
+//     // Convert base64 về binary
+//     const binary = atob(base64);
+//     const bytes = new Uint8Array(binary.length);
+//     for (let i = 0; i < binary.length; i++) {
+//       bytes[i] = binary.charCodeAt(i);
+//     }
+
+//     return new Blob([bytes], { type: mimeType });
+//   } catch (error) {
+//     console.error("Lỗi giải mã file:", error);
+//     throw error;
+//   }
+// }
