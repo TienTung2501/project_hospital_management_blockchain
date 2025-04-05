@@ -6,8 +6,10 @@ import flintWallet from "../assets/images/wallets/flint.svg";
 import vesprWallet from "../assets/images/wallets/unnamed.webp";
 import logo from "../assets/images/layout/logo-full.png";
 import walletIcon from "../assets/images/icon/wallet.png"
+import document from "../assets/images/icon/document_icon.png"
 import ada from "../assets/images/icon/ada.png";
 import fileNotFound from "../assets/images/layout/notfoundFile.png";
+
 const images = {
     // Wallet image start
     namiWallet,
@@ -19,7 +21,8 @@ const images = {
     logo,
     walletIcon,
     ada,
-    fileNotFound
+    fileNotFound,
+    document
 };
 
 export default images;

@@ -18,5 +18,7 @@ export type LucidContextType = {
     setLucidNeworkPlatform: React.Dispatch<React.SetStateAction<Lucid>>;
     setNetworkPlatform: React.Dispatch<React.SetStateAction<string>>;
     loadingConnectWallet: boolean;
+    isLoading: boolean;
+    setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
     isConnected:boolean;
 };

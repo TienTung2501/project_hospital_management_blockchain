@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { decryptFile } from "@/helper/utils";
+import { decryptFile } from "@/helpers/utils";
 import { FaSpinner } from "react-icons/fa";
 
 const DecryptPage = () => {
