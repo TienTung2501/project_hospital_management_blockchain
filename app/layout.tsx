@@ -21,22 +21,23 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
-  children: React.ReactNode
+  children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi">
-      <body className={`${inter.className} bg-gradient-to-b from-indigo-950/90 to-blue-900/90 min-h-screen`}>
+    <html lang="vi" suppressHydrationWarning>
+      <body
+        className={`${inter.className} bg-gradient-to-b from-indigo-950/90 to-blue-900/90 min-h-screen`}
+      >
         <LucidProvider>
           <SmartContractProvider>
-
             <ThemeProvider attribute="class" defaultTheme="dark">
               <div className="flex flex-col min-h-screen">
                 <Navbar />
-                  <main className="flex-grow min-h-[500px]">
-                    <div className="w-full max-w-6xl mx-auto px-4">
-                      {children}
-                    </div>
-                  </main>
+                <main className="flex-grow min-h-[500px]">
+                  <div className="w-full max-w-6xl mx-auto px-4">
+                    {children}
+                  </div>
+                </main>
                 <Footer />
                 <ToastContainer />
               </div>
@@ -45,6 +46,5 @@ export default function RootLayout({
         </LucidProvider>
       </body>
     </html>
-  )
+  );
 }
-

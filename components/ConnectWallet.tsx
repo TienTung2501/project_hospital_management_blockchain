@@ -1,16 +1,17 @@
 "use client"
 
 import { useContext, useState } from "react"
-import type { LucidContextType } from "@/type/LucidContextType"
+import type { LucidContextType } from "@/types/LucidContextType"
 import LucidContext from "@/contexts/components/LucidContext"
 import wallets from "@/constants/wallet"
 import Image from "next/image"
 import images from "@/public/assets"
-import type { WalletItemType } from "@/type/GenericsType"
+import type { WalletItemType } from "@/types/GenericsType"
 import { FaCaretDown, FaCaretUp } from "react-icons/fa"
 import { MdLogout, MdOutlineRemoveRedEye, MdRefresh } from "react-icons/md"
 import { Tooltip } from "@mui/material"
 import { toast } from "react-toastify"
+import { useRouter } from "next/navigation"
 
 const ConnectWallet = () => {
   const {
@@ -24,7 +25,7 @@ const ConnectWallet = () => {
   } = useContext<LucidContextType>(LucidContext)
   const [activeWallet, setActiveWallet] = useState(false)
   const [isShowWallet, setIsShowWallet] = useState(false)
-
+  const router = useRouter();
   const handleShowSellectWallet = () => {
     setActiveWallet(!activeWallet)
   }
@@ -141,7 +142,7 @@ const ConnectWallet = () => {
       {isShowWallet === true && (
         <div className="absolute mt-4 right-0 bg-indigo-900/90 backdrop-blur-sm text-white w-48 rounded-md shadow-lg border border-indigo-600/30 overflow-hidden">
           <ul className="py-3">
-            <li className="flex items-center px-3 text-gray-300 py-2 hover:bg-indigo-800/70 transition-colors cursor-pointer">
+            <li className="flex items-center px-3 text-gray-300 py-2 hover:bg-indigo-800/70 transition-colors cursor-pointer" onClick={() => router.push('/user')}>
               <div className="h-5 w-5 overflow-hidden me-3">
                 <Image src={images.walletIcon || "/placeholder.svg"} alt="" width={20} height={20} />
               </div>

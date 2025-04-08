@@ -7,9 +7,9 @@ import mintAsset from "@/services/cardano/mintAsset";
 
 
 // import { fetchAssetInformationFromUnit } from "@/utils/fetchAssets/fetchAssetsFromAddress";
-import { AssetBidType, AssetLock, AssetType, InforAssetVoteType } from "@/type/GenericsType";
+import { AssetBidType, AssetLock, AssetType, InforAssetVoteType } from "@/types/GenericsType";
 import LucidContext from "../components/LucidContext";
-import { LucidContextType } from "@/type/LucidContextType";
+import { LucidContextType } from "@/types/LucidContextType";
 
 // import { filterAssetNftOnBing, filterDatumFromPolicyId } from "@/helper/findUtxoOnSmartContract";
 import readValidator from "@/helpers/readValidator";

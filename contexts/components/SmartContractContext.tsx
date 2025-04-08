@@ -1,6 +1,6 @@
 'use client';
 import { createContext } from "react";
-import { SmartContractType } from "@/type/SmartContractType";
+import { SmartContractType } from "@/types/SmartContractType";
 
 const SmartContractContext = createContext<SmartContractType>(null!);
 

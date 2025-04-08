@@ -11,9 +11,9 @@ import { Checkbox } from "@/components/ui/checkbox"
 import NFTPreview from "@/components/nft-preview"
 import { Plus, Trash2 } from "lucide-react"
 import { toast } from "react-toastify";
-import { MetadataObject, NFTMintInfor } from "@/type/GenericsType";
+import { MetadataObject, NFTMintInfor } from "@/types/GenericsType";
 import LucidContext from "@/contexts/components/LucidContext";
-import { LucidContextType } from "@/type/LucidContextType";
+import { LucidContextType } from "@/types/LucidContextType";
 import mintAsset from "@/services/cardano/mintAsset";
 import { postCloudPinata } from "@/services/pinata/pinata";
 import { encryptFile } from "@/helpers/utils";
@@ -28,11 +28,14 @@ function convertMetadataToObj(metadataArray: MetadataObject[]) {
   }
   return resultObj;
 }
+const removeAccents = (str: string) =>
+  str.normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 export default function CreatePage() {
 
   const [customFields, setCustomFields] = useState<{ name: string; value: string }[]>([{ name: "", value: "" }])
   const {lucidWallet, walletItem ,setIsLoading} = useContext<LucidContextType>(LucidContext);
   const [title, setTitle] = useState("");
+  const [hospitalName, setHospitalName] = useState("");
   const [description, setDescription] = useState("");
   const [mediaType, setMediaType] = useState("");
   const [imagePath, setImagePath] = useState("/placeholder.svg?height=400&width=400");
@@ -51,6 +54,7 @@ export default function CreatePage() {
     setFileName("PNG, Video, Music, GIF, MP4 or MP3. Max 100mb");
     setMetadatas([{ key: "", value: "" }]);
     setDateOfDocument("");
+    setHospitalName("");
   };
     useEffect(() => {
       return () => {
@@ -101,7 +105,7 @@ export default function CreatePage() {
       toast.error("Làm ơn! Hãy kết nối ví trước khi thực hiện điều này");
       return;
     }
-    if (!title||!fileName||!dateOfDocument||!description) {
+    if (!title||!fileName||!dateOfDocument||!description||!hospitalName) {
       toast.error("Vui lòng nhập đủ thông tin trước khi tạo!!!");
       return;
     }
@@ -122,6 +126,11 @@ export default function CreatePage() {
       const uploadRes = await postCloudPinata(formDataForPinata);
       customMetadata['encryptKey'] = aesKey; // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
       customMetadata['hashCIP'] = uploadRes.IpfsHash; // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
+      customMetadata['date'] = dateOfDocument; // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
+      customMetadata['hospitalName'] = removeAccents(hospitalName); // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
+      customMetadata['documentType'] = "medRecord"; // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
+ 
+
       // Minting asset (ví dụ: sử dụng API mintAsset)
       const mintRes = await mintAsset({
         lucid: lucidWallet,
@@ -130,6 +139,7 @@ export default function CreatePage() {
         imageUrl: "ipfs://" + uploadRes.IpfsHash,
         mediaType,
         title,
+        label:721,
       });
 
       if (!mintRes.txHash) {
@@ -186,6 +196,19 @@ export default function CreatePage() {
               className="bg-indigo-900/30 border-indigo-600/50 text-white"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="name" className="text-white">
+              Tên bệnh viện( Viết không dấu)
+            </Label>
+            <Input
+              id="name_hospital"
+              placeholder="Tên bệnh viện"
+              className="bg-indigo-900/30 border-indigo-600/50 text-white"
+              value={hospitalName}
+              onChange={(e) => setHospitalName(e.target.value)}
               required
             />
           </div>

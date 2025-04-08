@@ -1,5 +1,5 @@
 import axios from "axios";
-import { AssetType } from "@/type/GenericsType";
+import { AssetType } from "@/types/GenericsType";
 
 const PROJECT_ID = "preview5ZEeQD8I1W8MHLEwlKy7NEmXKjSPJhRZ";
 const headers = {
@@ -23,18 +23,25 @@ const fetchAssetsFromAddress = async (address: string) => {
 const getAllAsset = async (address: string): Promise<AssetType[]> => {
   try {
     const units = await fetchAssetsFromAddress(address);
-    //  console.log("Units:", units); // Hiển thị các unit
+    
     const assetPromises = units
-      .filter((unit: string) => unit !== "lovelace") // Lọc ra các unit không phải là "lovelace"
-      .map((unit: string) => fetchAssetInformationFromUnit(unit)); // Gọi fetchAssetInformationFromUnit cho từng unit thỏa mãn điều kiện
+      .filter((unit: string) => unit !== "lovelace")
+      .map((unit: string) => fetchAssetInformationFromUnit(unit));
+      
     const assets = await Promise.all(assetPromises);
-    return assets;
+
+    // 🔍 Lọc ra các asset có documentType = "medRecord"
+    const filteredAssets = assets.filter(
+      (asset) => asset.onchain_metadata?.documentType === "medRecord"
+    );
+
+    return filteredAssets;
   } catch (error) {
     console.error("Error:", error);
-    // Xử lý lỗi nếu cần
     throw error;
   }
 };
+
 
 const fetchAssetInformationFromUnit = async (unit: string) => {
   try {

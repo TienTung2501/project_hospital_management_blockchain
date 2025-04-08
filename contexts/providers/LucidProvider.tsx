@@ -2,7 +2,7 @@
 import React, { ReactNode, useEffect, useState } from "react";
 import { Blockfrost, Lucid } from "lucid-cardano";
 import LucidContext from "@/contexts/components/LucidContext";
-import { WalletItemType } from "@/type/GenericsType";
+import { WalletItemType } from "@/types/GenericsType";
 
 import { connectLucid } from "@/services/cardano/lucid";
 import wallets from "@/constants/wallet";
@@ -60,6 +60,20 @@ const [dateOfDocument, setDateOfDocument] = useState(""); // New state for date
     //     setLucidWallet(lucidNeworkPlatform);
     //     // react-hooks/exhaustive-deps
     // }, [lucidNeworkPlatform, networkPlatform]);
+    // trong component
+useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsLoading(false);
+      }
+    };
+  
+    window.addEventListener("keydown", handleKeyDown);
+  
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, []);
 
     const refreshWallet = async () => {
         try {

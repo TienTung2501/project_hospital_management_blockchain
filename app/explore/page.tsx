@@ -76,7 +76,14 @@ export default function ExplorePage() {
         <h2 className="text-2xl font-bold text-white mb-6">Danh sách hồ sơ</h2>
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
           {nfts.map((nft) => (
-            <NFTCard key={nft.id} nft={nft} />
+            <NFTCard 
+            key={nft.id}  
+            name={nft.name}
+            description={nft.description}
+            likes={nft.likes}
+            date={nft.date}
+            image={nft.image}
+            />
           ))}
         </div>
         <div className="flex justify-center mt-8 gap-2">

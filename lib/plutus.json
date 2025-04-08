@@ -1,0 +1,237 @@
+{
+    "preamble": {
+      "title": "aiken-lang/hospital_management_smartcontract",
+      "description": "Aiken contracts for project 'aiken-lang/hospital_management_smartcontract'",
+      "version": "0.0.0",
+      "plutusVersion": "v2",
+      "compiler": {
+        "name": "Aiken",
+        "version": "v1.0.21-alpha+4b04517"
+      },
+      "license": "Apache-2.0"
+    },
+    "validators": [
+      {
+        "title": "main.grantSMC",
+        "datum": {
+          "title": "datum",
+          "schema": {
+            "$ref": "#/definitions/main~1DatumGrant"
+          }
+        },
+        "redeemer": {
+          "title": "_redeemer",
+          "schema": {
+            "$ref": "#/definitions/Void"
+          }
+        },
+        "compiledCode": "59022c0100003232323232323232222325333007323253330093370e900018040008991919191919299980799b87480080044c8c8c8cc004004008894ccc05800452809919299980a99b8f00200b14a226600800800260320046eb8c05c004dd6180a180a980a980a980a980a980a980a980a9807000980998068050a50300d001301100130110013009006375c601c002600e0022c6018002600a6016601860186018600a00829309b2b191919299980499b87480000044c8c8c8c8c8c8c8c8c8c8c8c94ccc060c0680084c8c926300f006300e00716375c603000260300046eb8c058004c058008c050004c050008c048004c048008dd7180800098080011bae300e001300700616300700523253330093370e9000000899191919299980818090010991924c64a66601e66e1d20000011323253330143016002132498c94ccc048cdc3a400000226464a66602e60320042649318070008b180b80098080010a99980919b87480080044c8c8c8c8c8c94ccc06cc07400852616375a603600260360046eb4c064004c064008dd6980b80098080010b18080008b180a00098068018a99980799b874800800454ccc048c03400c5261616300d00230070031630100013010002300e001300700216300700123253330083370e900000089919299980698078010a4c2c6eb8c034004c01800854ccc020cdc3a400400226464a66601a601e0042930b1bae300d0013006002163006001230053754002460066ea80055cd2ab9d5573caae7d5d0aba201",
+        "hash": "86120b02f25c54a2a430b78e73bfcd3590df1bc006309d7e4afc0c4c"
+      },
+      {
+        "title": "main.requestSMC",
+        "datum": {
+          "title": "datum",
+          "schema": {
+            "$ref": "#/definitions/main~1DatumRequest"
+          }
+        },
+        "redeemer": {
+          "title": "_redeemer",
+          "schema": {
+            "$ref": "#/definitions/Void"
+          }
+        },
+        "compiledCode": "5902110100003232323232323232222325333007323253330093370e90001804000899191919299980699b87480080044c8c8c8cc004004008894ccc05000452809919299980999b8f00200914a2266008008002602e0046eb8c054004dd61809180998099809980998099809980998099806000980898058040a50300b001300f30103009006375c601c002600e0022c6018002600a6016601860186018600a00829309b2b191919299980499b87480000044c8c8c8c8c8c8c8c94ccc050c0580084c8c926300b002300a003163014001301400230120013012002375c602000260200046eb8c038004c01c01858c01c0148c94ccc024cdc3a4000002264646464a6660206024004264649319299980799b87480000044c8c94ccc050c0580084c9263253330123370e900000089919299980b980c80109924c601c0022c602e00260200042a66602466e1d20020011323232323232533301b301d002149858dd6980d800980d8011bad30190013019002375a602e00260200042c60200022c6028002601a0062a66601e66e1d200200115333012300d00314985858c034008c01c00c58c040004c040008c038004c01c00858c01c0048c94ccc020cdc3a400000226464a66601a601e0042930b1bae300d0013006002153330083370e900100089919299980698078010a4c2c6eb8c034004c01800858c0180048c014dd5000918019baa0015734aae7555cf2ab9f5742ae881",
+        "hash": "a653f1229f1078d02c45ccf334f06491d587f6fbb14e259a35864266"
+      }
+    ],
+    "definitions": {
+      "ByteArray": {
+        "dataType": "bytes"
+      },
+      "Int": {
+        "dataType": "integer"
+      },
+      "Option$aiken/transaction/credential/Referenced$aiken/transaction/credential/Credential": {
+        "title": "Optional",
+        "anyOf": [
+          {
+            "title": "Some",
+            "description": "An optional value.",
+            "dataType": "constructor",
+            "index": 0,
+            "fields": [
+              {
+                "$ref": "#/definitions/aiken~1transaction~1credential~1Referenced$aiken~1transaction~1credential~1Credential"
+              }
+            ]
+          },
+          {
+            "title": "None",
+            "description": "Nothing.",
+            "dataType": "constructor",
+            "index": 1,
+            "fields": []
+          }
+        ]
+      },
+      "Void": {
+        "title": "Unit",
+        "description": "The nullary constructor.",
+        "anyOf": [
+          {
+            "dataType": "constructor",
+            "index": 0,
+            "fields": []
+          }
+        ]
+      },
+      "aiken/transaction/credential/Address": {
+        "title": "Address",
+        "description": "A Cardano `Address` typically holding one or two credential references.\n\n Note that legacy bootstrap addresses (a.k.a. 'Byron addresses') are\n completely excluded from Plutus contexts. Thus, from an on-chain\n perspective only exists addresses of type 00, 01, ..., 07 as detailed\n in [CIP-0019 :: Shelley Addresses](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0019/#shelley-addresses).",
+        "anyOf": [
+          {
+            "title": "Address",
+            "dataType": "constructor",
+            "index": 0,
+            "fields": [
+              {
+                "title": "payment_credential",
+                "$ref": "#/definitions/aiken~1transaction~1credential~1Credential"
+              },
+              {
+                "title": "stake_credential",
+                "$ref": "#/definitions/Option$aiken~1transaction~1credential~1Referenced$aiken~1transaction~1credential~1Credential"
+              }
+            ]
+          }
+        ]
+      },
+      "aiken/transaction/credential/Credential": {
+        "title": "Credential",
+        "description": "A general structure for representing an on-chain `Credential`.\n\n Credentials are always one of two kinds: a direct public/private key\n pair, or a script (native or Plutus).",
+        "anyOf": [
+          {
+            "title": "VerificationKeyCredential",
+            "dataType": "constructor",
+            "index": 0,
+            "fields": [
+              {
+                "$ref": "#/definitions/ByteArray"
+              }
+            ]
+          },
+          {
+            "title": "ScriptCredential",
+            "dataType": "constructor",
+            "index": 1,
+            "fields": [
+              {
+                "$ref": "#/definitions/ByteArray"
+              }
+            ]
+          }
+        ]
+      },
+      "aiken/transaction/credential/Referenced$aiken/transaction/credential/Credential": {
+        "title": "Referenced",
+        "description": "Represent a type of object that can be represented either inline (by hash)\n or via a reference (i.e. a pointer to an on-chain location).\n\n This is mainly use for capturing pointers to a stake credential\n registration certificate in the case of so-called pointer addresses.",
+        "anyOf": [
+          {
+            "title": "Inline",
+            "dataType": "constructor",
+            "index": 0,
+            "fields": [
+              {
+                "$ref": "#/definitions/aiken~1transaction~1credential~1Credential"
+              }
+            ]
+          },
+          {
+            "title": "Pointer",
+            "dataType": "constructor",
+            "index": 1,
+            "fields": [
+              {
+                "title": "slot_number",
+                "$ref": "#/definitions/Int"
+              },
+              {
+                "title": "transaction_index",
+                "$ref": "#/definitions/Int"
+              },
+              {
+                "title": "certificate_index",
+                "$ref": "#/definitions/Int"
+              }
+            ]
+          }
+        ]
+      },
+      "main/DatumGrant": {
+        "title": "DatumGrant",
+        "anyOf": [
+          {
+            "title": "DatumGrant",
+            "dataType": "constructor",
+            "index": 0,
+            "fields": [
+              {
+                "title": "policyId",
+                "$ref": "#/definitions/ByteArray"
+              },
+              {
+                "title": "assetName",
+                "$ref": "#/definitions/ByteArray"
+              },
+              {
+                "title": "requestorAddress",
+                "$ref": "#/definitions/aiken~1transaction~1credential~1Address"
+              },
+              {
+                "title": "ownerAddress",
+                "$ref": "#/definitions/aiken~1transaction~1credential~1Address"
+              },
+              {
+                "title": "keyEncrypt",
+                "$ref": "#/definitions/ByteArray"
+              },
+              {
+                "title": "hashCIP",
+                "$ref": "#/definitions/ByteArray"
+              }
+            ]
+          }
+        ]
+      },
+      "main/DatumRequest": {
+        "title": "DatumRequest",
+        "anyOf": [
+          {
+            "title": "DatumRequest",
+            "dataType": "constructor",
+            "index": 0,
+            "fields": [
+              {
+                "title": "policyId",
+                "$ref": "#/definitions/ByteArray"
+              },
+              {
+                "title": "assetName",
+                "$ref": "#/definitions/ByteArray"
+              },
+              {
+                "title": "requestorAddress",
+                "$ref": "#/definitions/aiken~1transaction~1credential~1Address"
+              },
+              {
+                "title": "ownerAddress",
+                "$ref": "#/definitions/aiken~1transaction~1credential~1Address"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  }

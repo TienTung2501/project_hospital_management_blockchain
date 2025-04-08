@@ -1,6 +1,6 @@
 import configs from "@/configs";
 import images from "@/public/assets";
-import { WalletItemType } from "@/type/GenericsType";
+import { WalletItemType } from "@/types/GenericsType";
 
 declare const window: any;
 

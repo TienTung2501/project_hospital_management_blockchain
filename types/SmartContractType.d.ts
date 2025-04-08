@@ -34,6 +34,7 @@ export type SmartContractType ={
         imageUrl,
         mediaType,
         customMetadata,
+        label,
     }: {
         lucid: Lucid;
         title: string;
@@ -41,6 +42,7 @@ export type SmartContractType ={
         mediaType: string;
         imageUrl: string
         customMetadata: any;
+        label:number;
     }) => Promise<any>;
 
     burnAsset: ({ lucid, policyId, assetName }: { lucid: Lucid; policyId: string; assetName: string }) => Promise<any>;
