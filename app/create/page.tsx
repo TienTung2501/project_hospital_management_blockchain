@@ -98,7 +98,6 @@ export default function CreatePage() {
       customFields,
     };
 
-    console.log("Form data to submit:", formData);
 
     // Kiểm tra điều kiện trước khi gửi dữ liệu (ví dụ: nếu chưa kết nối ví, cần yêu cầu kết nối)
     if (!lucidWallet || walletItem.walletAddress === "") {
@@ -119,10 +118,10 @@ export default function CreatePage() {
       // Mã hóa file trước khi upload (nếu cần)
       const aesKey = CryptoJS.lib.WordArray.random(16).toString();
       const encryptedFile = await encryptFile(image as File, aesKey);
-      
+      const encryptedFileName = `encrypted_${image?.name}`;
       // Upload lên Pinata (hoặc dịch vụ khác)
       const formDataForPinata = new FormData();
-      formDataForPinata.append("file", encryptedFile);
+      formDataForPinata.append("file", encryptedFile,encryptedFileName);
       const uploadRes = await postCloudPinata(formDataForPinata);
       customMetadata['encryptKey'] = aesKey; // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
       customMetadata['hashCIP'] = uploadRes.IpfsHash; // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)

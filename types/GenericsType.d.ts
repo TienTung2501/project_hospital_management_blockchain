@@ -45,6 +45,40 @@ export type NftItemType = {
     updatedAt?: string;
     validate?: boolean;
 };
+export type medRecord = {
+    asset:string;//unit
+    assetName:string;//assetname hex
+    policyId:string;
+    mediaType: string;
+    title:string;// name in onchain metadata
+    date:string;//in onchain metadata
+    hospitalName:string;//in onchain metadata
+    hashCIP:string;//in onchain metadata
+    encryptKey:string;//in onchain metadata
+    documentType:string;//in onchain metadata
+    documentLink:string;//in onchain metadata
+    description:string;//in onchain metadata
+    ownerAddress:string;//in onchain metadata
+};
+export type UtxoRequest={
+    policyId: string,
+    policyIdMedRecord:string,
+    assetName: string,
+    title:string,
+    requestorAddress: string,
+    ownerAddress: string,
+    requestorPublicKey: string,
+}
+export type UtxoGrant={
+    policyId: string,
+    policyIdMedRecord:string,
+    assetName: string,
+    title:string,
+    requestorAddress: string,
+    ownerAddress: string,
+    encyptAesKey: string,
+    nonceAccess: string,
+}
 type AssetType = {
     asset?: string;
     asset_name?: string;

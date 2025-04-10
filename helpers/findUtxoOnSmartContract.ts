@@ -1,56 +1,112 @@
-import { Data, UTxO } from "lucid-cardano";
-import { DatumBid } from "~/constants/datumbid";
+import { Data, Lucid, UTxO } from "lucid-cardano";
+import { DatumGrant } from "@/constants/datumGrant";
+import { DatumRequest } from "@/constants/datumRequest";
+import { UtxoGrant, UtxoRequest } from "@/types/GenericsType";
+import readValidator from "./readValidator";
+import { getAddressFromBech32, getBech32FromAddress } from "@/constants/utils";
+import { convertHexToBase64 } from "./convertHexToBase64";
 
-function filterUtxoMoneyByPolicyId(utxos:any,policyId:any) {
-    return utxos.filter((utxo:any) => {
-        try {
-            // Pour datum data into the temp variable of the current UTxO
-            const temp = Data.from<DatumBid>(utxo.datum, DatumBid);
-            // Check to see if that UTxO actually contains the NFT you want to buy?
-            if (temp.policyId === policyId&& temp.price>0) {
-                return true; // That UTxO has been taken
-            }
-            return false; // That UTxO is not selected
-        } catch (e) {
-            return false; // That UTxO is not selected
+
+export async function getListUtxoFromRequestContractByAddress(lucid:Lucid,address: string): Promise<UtxoRequest[]> {
+    // 🔸 Giả định có hàm load UTxO từ contract
+    // Địa chỉ hợp đồng
+    const validator = await readValidator.readValidatorRequest();
+    const contractAddress = lucid.utils.validatorToAddress(validator);
+    const utxos = await lucid.utxosAt(contractAddress);
+    const result: UtxoRequest[] = [];
+  
+    for (const utxo of utxos) {
+      const datum = Data.from<DatumRequest>(utxo.datum!, DatumRequest);
+      if (!datum) continue;
+  
+      try {
+        const parsed: UtxoRequest = {
+          policyId: datum.policyId,
+          policyIdMedRecord: datum.policyIdMedRecord,
+          assetName: datum.assetName,
+          title: convertHexToBase64(datum.assetName),
+          requestorAddress: getBech32FromAddress(lucid,datum.requestorAddress),
+          ownerAddress: getBech32FromAddress(lucid,datum.ownerAddress),
+          requestorPublicKey: datum.requestorPublicKey,
+        };
+        
+        if (parsed.requestorAddress === address) {
+          result.push(parsed);
         }
+      } catch (err) {
+        console.warn(`⚠️ Không parse được UTxO:`, utxo);
+      }
+    }
+  
+    return result;
+  }
+
+export async function getUtxoFromGrantContractByAddress(lucid:Lucid,address:string) {
+     // 🔸 Giả định có hàm load UTxO từ contract
+    // Địa chỉ hợp đồng
+    const validator = await readValidator.readValidatorGrant();
+    const contractAddress = lucid.utils.validatorToAddress(validator);
+    const utxos = await lucid.utxosAt(contractAddress);
+  
+    const result: UtxoGrant[] = [];
+  
+    for (const utxo of utxos) {
+      const datum = Data.from<DatumGrant>(utxo.datum!, DatumGrant);
+  
+      if (!datum) continue;
+  
+      try {
+        const parsed: UtxoGrant = {
+          policyId: datum.policyId,
+          policyIdMedRecord: datum.policyIdMedRecord,
+          assetName: datum.assetName,
+          title: convertHexToBase64(datum.assetName),
+          requestorAddress: getBech32FromAddress(lucid,datum.requestorAddress),
+          ownerAddress: getBech32FromAddress(lucid,datum.ownerAddress),
+          encyptAesKey: datum.encyptAesKey,
+          nonceAccess: datum.nonceAccess,
+        };
+  
+        if (parsed.requestorAddress === address) {
+          result.push(parsed);
+        }
+      } catch (err) {
+        console.warn(`⚠️ Không parse được UTxO:`, utxo);
+      }
+    }
+  
+    return result;
+}
+export function filterUtxoByPolicyIdMedRecordFromRequestContract(// kiểm tra xem đã yêu cầu hay chưa nếu đã yêu cầu rồi thì hiển thị ra
+  list: UtxoRequest[],
+  policyIdMedRecord: string
+): UtxoRequest[] {
+  return list.filter((item) => item.policyIdMedRecord === policyIdMedRecord);
+}
+
+
+export async function filterUtxoByPolicyIdFromAddress(
+  lucid: Lucid,
+  assetName:string,
+  policyIdMedRecord: string
+) {
+  const utxos:UTxO[] = await lucid.wallet.getUtxos();
+  // Lọc các UTXO có chứa assetId khớp policyIdMedRecord
+  const matched = utxos.filter((utxo) => {
+    const units = Object.keys(utxo.assets); // [policyId + assetName]
+    return units.some((unit) => {
+      const policyId = unit.slice(0,56); // phần còn lại là assetName (hex)
+      const unitAssetNameHex = unit.slice(56); // phần còn lại là assetName (hex)
+      return unitAssetNameHex === assetName&&policyId!==policyIdMedRecord;
     });
+  });
+  console.log(matched)
+  return matched;
 }
-function filterUtxoAssetByPolicyId(utxos:any,policyId:any) {
-    return utxos.filter((utxo:any) => {
-        try {
-            // Pour datum data into the temp variable of the current UTxO
-            const temp = Data.from<DatumBid>(utxo.datum, DatumBid);
-            // Check to see if that UTxO actually contains the NFT you want to buy?
-            if (temp.policyId === policyId&& temp.price===BigInt(0)) {
-                return true; // That UTxO has been taken
-            }
-            return false; // That UTxO is not selected
-        } catch (e) {
-            return false; // That UTxO is not selected
-        }
-    });
-}
-function filterDatumFromPolicyId(assets:DatumBid[],policyId:string){
-    return assets.filter((e)=>{
-        if(e.policyId===policyId &&e.price>BigInt(0)){
-            return true;
-        }
-        else{
-            return false;
-        }
-    })
 
-
+export function filterUtxoByPolicyIdMedRecordFromGrantContract(// kiểm tra xem đã cấp quyèn hay chưa nếu đã cấp quyèn rồi thì hiển thị ra
+  list: UtxoGrant[],
+  policyIdMedRecord: string
+): UtxoGrant[] {
+  return list.filter((item) => item.policyIdMedRecord === policyIdMedRecord);
 }
-function filterAssetNftOnBing(assets:DatumBid[]){
-    return assets.filter((e)=>{
-if(e.price===BigInt(0)){
-    return true
-}
-else{
-    return false;
-}
-    })
-}
-export {filterUtxoAssetByPolicyId,filterUtxoMoneyByPolicyId,filterDatumFromPolicyId,filterAssetNftOnBing};

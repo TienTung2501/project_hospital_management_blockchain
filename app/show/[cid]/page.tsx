@@ -1,12 +1,16 @@
-"use client";
+'use client';
 
-import { useState } from "react";
-import { decryptFile } from "@/helpers/utils";
-import { FaSpinner } from "react-icons/fa";
+import { useState, useEffect } from 'react';
+import { useParams } from 'next/navigation';
+import { decryptFile } from '@/helpers/utils';
+import { FaSpinner } from 'react-icons/fa';
+import convertIpfsAddressToUrl from '@/helpers/convertIpfsAddressToUrl';
 
 const DecryptPage = () => {
-  const [aesKey, setAesKey] = useState("d6f71025571d5a3ea66bbb458a402dcf");
+  const { cid } = useParams(); // Lấy tham số cid từ URL
+  const [encryptKey, setEncryptKey] = useState<string>('');
   const [decryptedBlobUrl, setDecryptedBlobUrl] = useState<string | null>(null);
+  const [previewBlobUrl, setPreviewBlobUrl] = useState<string | null>(null); // Blob cho preview
   const [isLoading, setIsLoading] = useState(false);
 
   const [userPermissions, setUserPermissions] = useState({
@@ -15,27 +19,34 @@ const DecryptPage = () => {
     print: false,  // Quyền in
   });
 
-  const encryptedFileUrl =
-    "https://ivory-deaf-guineafowl-894.mypinata.cloud/ipfs/QmPaKy1v8CbGcN6sQXhtdg2cmYNjuy3B9USA4CU1JVUF6C?pinataGatewayToken=ZF-2NSDMZeCixzMlrJNPo0-N-mcMc51IGpbOuHB5uduKMyNRGFVkOu9QbYj8HO13";
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const encryptKeyFromQuery = urlParams.get('param'); // Lấy 'param' từ query string
+    if (encryptKeyFromQuery) setEncryptKey(encryptKeyFromQuery);
+  }, []);
+
+  useEffect(() => {
+    if (cid) {
+      const ipfsUrl = convertIpfsAddressToUrl(`ipfs://${cid}`);
+      setPreviewBlobUrl(ipfsUrl); // Set URL preview để xem trước file từ IPFS
+    }
+  }, [cid]);
 
   const handleDecryptFromIPFS = async () => {
-    if (!aesKey) {
-      alert("Vui lòng nhập AES key để giải mã.");
+    setIsLoading(true);
+    if (!encryptKey) {
+      alert('Vui lòng nhập AES key để giải mã.');
       return;
     }
-
-    setIsLoading(true);
-
     try {
-      const response = await fetch(encryptedFileUrl);
+      const response = await fetch(previewBlobUrl!);
       const encryptedText = await response.text();
-
-      const decryptedBlob = await decryptFile(encryptedText, aesKey);
+      const decryptedBlob = await decryptFile(encryptedText, encryptKey);
       const blobUrl = URL.createObjectURL(decryptedBlob);
-      setDecryptedBlobUrl(blobUrl);
+      setDecryptedBlobUrl(blobUrl); // Cập nhật URL đã giải mã
     } catch (error) {
-      console.error("Lỗi giải mã:", error);
-      alert("Giải mã thất bại, kiểm tra lại AES key và file.");
+      console.error('Lỗi giải mã:', error);
+      alert('Giải mã thất bại, kiểm tra lại AES key và file.');
     } finally {
       setIsLoading(false);
     }
@@ -43,16 +54,16 @@ const DecryptPage = () => {
 
   const handleDownload = () => {
     if (decryptedBlobUrl) {
-      const link = document.createElement("a");
+      const link = document.createElement('a');
       link.href = decryptedBlobUrl;
-      link.download = "document.pdf"; // Tên file khi tải về
+      link.download = 'document.pdf'; // Tên file khi tải về
       link.click();
     }
   };
 
   const handlePrint = () => {
     if (decryptedBlobUrl) {
-      const printWindow = window.open(decryptedBlobUrl, "_blank");
+      const printWindow = window.open(decryptedBlobUrl, '_blank');
       printWindow?.print();
     }
   };
@@ -66,8 +77,8 @@ const DecryptPage = () => {
         <input
           type="text"
           className="w-full bg-gray-100 p-3 rounded-md border border-gray-300"
-          value={aesKey}
-          onChange={(e) => setAesKey(e.target.value)}
+          value={encryptKey}
+          onChange={(e) => setEncryptKey(e.target.value)}
           placeholder="Nhập AES Key dùng để mã hóa"
         />
       </div>
@@ -80,11 +91,23 @@ const DecryptPage = () => {
           {isLoading ? (
             <FaSpinner className="animate-spin inline-block" />
           ) : (
-            "🔓 Giải mã file từ IPFS"
+            '🔓 Giải mã file từ IPFS'
           )}
         </button>
       </div>
 
+      {/* Hiển thị phần xem trước khi chưa giải mã */}
+      {previewBlobUrl && !decryptedBlobUrl && (
+        <div className="mt-6 relative w-full h-[80vh]">
+          <iframe
+            src={previewBlobUrl}
+            className="w-full h-full rounded-lg border shadow-md"
+            title="PDF gốc (chưa giải mã)"
+          ></iframe>
+        </div>
+      )}
+
+      {/* Hiển thị PDF đã giải mã nếu có */}
       {decryptedBlobUrl && (
         <div className="mt-6 relative w-full h-[80vh]">
           <iframe

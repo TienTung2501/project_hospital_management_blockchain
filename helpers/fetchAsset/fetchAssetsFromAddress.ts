@@ -20,21 +20,24 @@ const fetchAssetsFromAddress = async (address: string) => {
   }
 };
 
-const getAllAsset = async (address: string): Promise<AssetType[]> => {
+import { medRecord } from "@/types/GenericsType";  // Đảm bảo đã nhập đúng type medRecord
+
+const getAllAsset = async (address: string): Promise<medRecord[]> => {
   try {
     const units = await fetchAssetsFromAddress(address);
     
     const assetPromises = units
       .filter((unit: string) => unit !== "lovelace")
       .map((unit: string) => fetchAssetInformationFromUnit(unit));
-      
-    const assets = await Promise.all(assetPromises);
-
+    
+    const assets :medRecord[]= await Promise.all(assetPromises);
+    console.log(assets)
     // 🔍 Lọc ra các asset có documentType = "medRecord"
-    const filteredAssets = assets.filter(
-      (asset) => asset.onchain_metadata?.documentType === "medRecord"
-    );
-
+    const filteredAssets = assets.filter((asset) => {
+      return (
+        asset.documentType === "medRecord"
+      );
+    })
     return filteredAssets;
   } catch (error) {
     console.error("Error:", error);
@@ -43,19 +46,36 @@ const getAllAsset = async (address: string): Promise<AssetType[]> => {
 };
 
 
-const fetchAssetInformationFromUnit = async (unit: string) => {
+
+
+const fetchAssetInformationFromUnit = async (unit: string): Promise<medRecord> => {
   try {
     const url = `https://cardano-preview.blockfrost.io/api/v0/assets/${unit}`;
     const response = await axios.get(url, { headers });
-    const { asset_name, fingerprint, onchain_metadata, policy_id, quantity } =
-      response.data;
-    // console.log(response.data); // Hiển thị thông tin của asset
-    return { asset_name, fingerprint, onchain_metadata, policy_id, quantity };
+    const { asset,asset_name,  onchain_metadata, policy_id } = response.data;
+
+    // Nếu có onchain_metadata, trả về giá trị
+    return {
+      asset: asset,
+      assetName: asset_name,
+      policyId: policy_id,
+      mediaType: onchain_metadata?.mediaType || "",
+      title: onchain_metadata?.name || "",
+      date: onchain_metadata?.date || "",
+      hospitalName: onchain_metadata?.hospitalName || "",
+      hashCIP: onchain_metadata?.hashCIP || "",
+      encryptKey: onchain_metadata?.encryptKey || "",
+      documentType: onchain_metadata?.documentType || "",
+      documentLink: onchain_metadata?.documentLink || "",
+      description: onchain_metadata?.description || "",
+    };
   } catch (error: any) {
     console.error("Error:", error.response.data);
     throw error;
   }
 };
+
+
 const fetchAuthorAddressAsset = async (unit: string) => {
   if (unit !== "lovelace") {
     try {

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useContext } from 'react';
 import NFTCard from '@/components/nft-card';
-import { AssetType } from '@/types/GenericsType';
+import { AssetType, medRecord } from '@/types/GenericsType';
 import { getAllAsset } from '@/helpers/fetchAsset/fetchAssetsFromAddress';
 import { toast } from 'react-toastify';
 import { LucidContextType } from '@/types/LucidContextType';
@@ -13,8 +13,9 @@ import mintTokenService from '@/services/cardano/mintoken';
 import mintAsset from '@/services/cardano/mintAsset';
 
 const Profile_Created = () => {
-  const [assets, setAssets] = useState<AssetType[]>([]);
+  const [assets, setAssets] = useState<medRecord[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
+  const [addressFix, setAddressFix] = useState<string>("");
   const itemsPerPage = 8; // Số lượng items mỗi trang
   const { isConnected,refreshWallet, connectWallet, disconnectWallet, walletItem, setWalletItem,setIsLoading, loadingConnectWallet,lucidNeworkPlatform } = useContext<LucidContextType>(LucidContext);
     
@@ -24,6 +25,7 @@ const Profile_Created = () => {
       if (lucidNeworkPlatform && isConnected && walletItem.walletAddress) {
         try {
           const assetData = await getAllAsset(walletItem.walletAddress);
+          setAddressFix(walletItem.walletAddress);
           console.log("number asset:", assetData);
           setAssets(assetData);
         } catch (error) {
@@ -33,6 +35,8 @@ const Profile_Created = () => {
       }
     };
     fetchDataAsset();
+    if(!isConnected)
+      setAddressFix("");
   }, [lucidNeworkPlatform, isConnected, walletItem.walletAddress]);
   
   // Tính toán các mục hiển thị cho mỗi trang
@@ -90,12 +94,24 @@ try {
         <div id="area-bidding-list" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
           {currentItems.map((asset) => (
             <NFTCard
-              key={`${asset.policy_id}_${asset.asset_name}`}
-              name={asset.onchain_metadata?.name || ""}
-              imgSrc={asset.onchain_metadata?.image || ""}
-              policyId={asset.policy_id||""}
-              assetName={asset.asset_name||""}
-            />
+                         key={asset.asset}
+                         medRecord={{
+                           asset: asset.asset || "", // assetName là tên của tài sản
+                           assetName: asset.assetName || "", // assetName của asset (dạng hex)
+                           policyId: asset.policyId || "", // policy_id của asset
+                           mediaType: asset.mediaType || "", // mediaType trong onchain metadata
+                           title: asset.title || "", // Tên tài sản trong metadata
+                           date: asset.date || "", // Ngày khám từ metadata
+                           hospitalName: asset.hospitalName || "", // Tên bệnh viện
+                           hashCIP: asset.hashCIP || "", // hashCIP từ metadata
+                           encryptKey: asset.encryptKey || "", // Encrypt key từ metadata
+                           documentType: asset.documentType || "", // Loại tài liệu (medRecord)
+                           documentLink: asset.documentLink || "", // Đường dẫn tài liệu IPFS
+                           description: asset.description || "", // Mô tả tài liệu
+                           ownerAddress:addressFix,
+                         }}
+                         isCardMedRecord={true} // Thêm thông tin cho loại card là medRecord
+                       />
           ))}
         </div>
           
@@ -109,7 +125,10 @@ try {
         </div>
       </>
     ) : (
-      <h1 className="flex justify-center items-center">Vui lòng connect ví để xem chi tiết</h1>
+      <div className="mt-4 p-4 bg-gray-600 text-white rounded pt-4">
+      Vui lòng connect ví để xem chi tiết!!!
+    </div>
+      
     )}
   </main>
 </div>
