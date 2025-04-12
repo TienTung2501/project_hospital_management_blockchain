@@ -22,7 +22,7 @@ export const LucidProvider = function ({ children }: Props) {
     const [isLoading, setIsLoading] = useState<boolean>(false);
     const [lucidNeworkPlatform, setLucidNeworkPlatform] = useState<Lucid>(null!);
     const [isConnected, setIsConnected] = useState<boolean>(false);
-const [dateOfDocument, setDateOfDocument] = useState(""); // New state for date
+    const [dateOfDocument, setDateOfDocument] = useState(""); // New state for date
     const [lucidWallet, setLucidWallet] = useState<Lucid>(null!);
 
     const [walletItem, setWalletItem] = useState<WalletItemType>({
@@ -145,6 +145,7 @@ useEffect(() => {
     };
 
     const disconnectWallet = async function () {
+        
         try {
             setIsLoading(true);  // Bật spinner khi bắt đầu tải trang
             setIsConnected(false);

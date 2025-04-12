@@ -68,6 +68,8 @@ const fetchAssetInformationFromUnit = async (unit: string): Promise<medRecord> =
       documentType: onchain_metadata?.documentType || "",
       documentLink: onchain_metadata?.documentLink || "",
       description: onchain_metadata?.description || "",
+      ephemeralPublicKey: onchain_metadata?.ephemeralPublicKey || "",
+      encryptNonce: onchain_metadata?.encryptNonce || "",
     };
   } catch (error: any) {
     console.error("Error:", error.response.data);

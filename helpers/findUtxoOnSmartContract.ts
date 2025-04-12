@@ -7,7 +7,16 @@ import { getAddressFromBech32, getBech32FromAddress } from "@/constants/utils";
 import { convertHexToBase64 } from "./convertHexToBase64";
 
 
-export async function getListUtxoFromRequestContractByAddress(lucid:Lucid,address: string): Promise<UtxoRequest[]> {
+export async function getListUtxoFromRequestContractByAddress({
+  lucid,
+  addressRequestor,
+  addressGrantor
+}: {
+  lucid: Lucid;
+  addressRequestor?: string;
+  addressGrantor?: string;
+}): Promise<UtxoRequest[]>
+ {
     // 🔸 Giả định có hàm load UTxO từ contract
     // Địa chỉ hợp đồng
     const validator = await readValidator.readValidatorRequest();
@@ -24,13 +33,16 @@ export async function getListUtxoFromRequestContractByAddress(lucid:Lucid,addres
           policyId: datum.policyId,
           policyIdMedRecord: datum.policyIdMedRecord,
           assetName: datum.assetName,
-          title: convertHexToBase64(datum.assetName),
+          title: Buffer.from(datum.assetName, 'hex').toString('utf8'),
           requestorAddress: getBech32FromAddress(lucid,datum.requestorAddress),
           ownerAddress: getBech32FromAddress(lucid,datum.ownerAddress),
           requestorPublicKey: datum.requestorPublicKey,
         };
         
-        if (parsed.requestorAddress === address) {
+        if (parsed.requestorAddress === addressRequestor&&addressRequestor) {
+          result.push(parsed);
+        }
+        if (parsed.ownerAddress === addressGrantor&&addressGrantor) {
           result.push(parsed);
         }
       } catch (err) {
@@ -41,7 +53,17 @@ export async function getListUtxoFromRequestContractByAddress(lucid:Lucid,addres
     return result;
   }
 
-export async function getUtxoFromGrantContractByAddress(lucid:Lucid,address:string) {
+  export async function getListUtxoFromGrantContractByAddress({
+    lucid,
+    addressRequestor,
+    addressGrantor
+  }: {
+    lucid: Lucid;
+    addressRequestor?: string;
+    addressGrantor?: string;
+  }): Promise<UtxoGrant[]>
+
+{
      // 🔸 Giả định có hàm load UTxO từ contract
     // Địa chỉ hợp đồng
     const validator = await readValidator.readValidatorGrant();
@@ -60,14 +82,17 @@ export async function getUtxoFromGrantContractByAddress(lucid:Lucid,address:stri
           policyId: datum.policyId,
           policyIdMedRecord: datum.policyIdMedRecord,
           assetName: datum.assetName,
-          title: convertHexToBase64(datum.assetName),
+          title: Buffer.from(datum.assetName, 'hex').toString('utf8'),
           requestorAddress: getBech32FromAddress(lucid,datum.requestorAddress),
           ownerAddress: getBech32FromAddress(lucid,datum.ownerAddress),
           encyptAesKey: datum.encyptAesKey,
           nonceAccess: datum.nonceAccess,
         };
   
-        if (parsed.requestorAddress === address) {
+        if (parsed.requestorAddress === addressRequestor&&addressRequestor) {
+          result.push(parsed);
+        }
+        if (parsed.ownerAddress === addressGrantor&&addressGrantor) {
           result.push(parsed);
         }
       } catch (err) {

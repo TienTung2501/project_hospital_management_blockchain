@@ -45,6 +45,8 @@ export type NftItemType = {
     updatedAt?: string;
     validate?: boolean;
 };
+export type medRecordRequest = Omit<medRecord, 'policyId'> & Omit<UtxoRequest, 'assetName' | 'title' | 'ownerAddress'>;
+
 export type medRecord = {
     asset:string;//unit
     assetName:string;//assetname hex
@@ -58,7 +60,13 @@ export type medRecord = {
     documentType:string;//in onchain metadata
     documentLink:string;//in onchain metadata
     description:string;//in onchain metadata
-    ownerAddress:string;//in onchain metadata
+    ownerAddress?:string;//in onchain metadata
+    ephemeralPublicKey:string;//in onchain metadata
+    encryptNonce:string;//in onchain metadata
+    encryptAesKeyGranted?:string;//in onchain metadata
+    encryptNonceGranted?:string;//in onchain metadata
+    publicKeyEcGrant?:string;//in onchain metadata
+    isRequested?:boolean;
 };
 export type UtxoRequest={
     policyId: string,

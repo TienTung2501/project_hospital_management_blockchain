@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useContext } from 'react';
+import React, { useState, useContext, useEffect } from 'react';
 import NFTCard from '@/components/nft-card';
 import { AssetType, medRecord, UtxoRequest } from '@/types/GenericsType';
 import { getAllAsset } from '@/helpers/fetchAsset/fetchAssetsFromAddress';
@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { PagePagination } from '@/components/PagePagination';
 import Link from "next/link";
 import { toast } from 'react-toastify';
-import { filterUtxoByPolicyIdMedRecordFromRequestContract, getListUtxoFromRequestContractByAddress } from '@/helpers/findUtxoOnSmartContract';
+import { filterUtxoByPolicyIdMedRecordFromRequestContract, getListUtxoFromGrantContractByAddress, getListUtxoFromRequestContractByAddress } from '@/helpers/findUtxoOnSmartContract';
 import { cancelRequest } from '@/actions/requestMedRecord';
 
 export default function Home() {
@@ -21,83 +21,134 @@ export default function Home() {
   const [addressFix, setAddressFix] = useState<string>("");
   const [notification, setNotification] = useState<string>("");
   const [isCanCancel, setIsCanCancel] = useState<boolean>(false);
-  const { isConnected, refreshWallet, connectWallet, disconnectWallet, walletItem, setWalletItem, setIsLoading, loadingConnectWallet, lucidNeworkPlatform } = useContext<LucidContextType>(LucidContext);
+  const {isConnected, refreshWallet, connectWallet, disconnectWallet, walletItem, setWalletItem, setIsLoading, loadingConnectWallet, lucidNeworkPlatform } = useContext<LucidContextType>(LucidContext);
   const itemsPerPage = 8; // Số lượng items mỗi trang
   // Theo dõi định kỳ xem có thể huỷ hay không
-  React.useEffect(() => {
+  useEffect(() => {
     if (!lucidNeworkPlatform || !walletItem.walletAddress) return;
   
-    const interval = setInterval(async () => {
+    const checkCancelable = async () => {
       try {
-        const utxos = await getListUtxoFromRequestContractByAddress(
-          lucidNeworkPlatform!,
-          walletItem.walletAddress!
-        );
-        setIsCanCancel(utxos.length > 0);
+        const assetData = await getAllAsset(searchValue);
+        const utxosRequest = await getListUtxoFromRequestContractByAddress({
+          lucid: lucidNeworkPlatform,
+          addressRequestor: walletItem.walletAddress,
+        });
+        const utxosGrant = await getListUtxoFromGrantContractByAddress({
+          lucid: lucidNeworkPlatform,
+          addressRequestor: walletItem.walletAddress,
+        });
+  
+        let canCancel = false;
+  
+        assetData.forEach((med) => {
+          const matchingGrant = utxosGrant.find(
+            (grant) => grant.policyIdMedRecord === med.policyId
+          );
+          if (matchingGrant) {
+            med.encryptAesKeyGranted = matchingGrant.encyptAesKey;
+            med.encryptNonceGranted = matchingGrant.nonceAccess;
+          }
+  
+          const matchingRequest = utxosRequest.find(
+            (request) => request.policyIdMedRecord === med.policyId
+          );
+          med.isRequested = !!matchingRequest;
+  
+          // 🧠 Chỉ có thể hủy nếu đã yêu cầu và chưa được cấp quyền
+          if (matchingRequest && !matchingGrant?.nonceAccess) {
+            canCancel = true;
+          }
+        });
+  
+        setIsCanCancel(canCancel); // ✅ Cập nhật trạng thái có thể hủy
       } catch (error) {
         console.error("Lỗi khi kiểm tra UTxO:", error);
         setIsCanCancel(false);
       }
-    }, 10000);
+    };
   
-    (async () => {
-      try {
-        const utxos = await getListUtxoFromRequestContractByAddress(
-          lucidNeworkPlatform!,
-          walletItem.walletAddress!
-        );
-        setIsCanCancel(utxos.length > 0);
-      } catch (error) {
-        console.error("Lỗi khi kiểm tra UTxO lần đầu:", error);
-        setIsCanCancel(false);
-      }
-    })();
+    const interval = setInterval(checkCancelable, 10000);
+    checkCancelable(); // chạy lần đầu
   
     return () => clearInterval(interval);
-  }, [lucidNeworkPlatform, walletItem.walletAddress]);
+  }, [lucidNeworkPlatform, walletItem.walletAddress, searchValue]);
+  
   
   const submitAddress = async () => {
     setAssets([]);
     setAddressFix("");
-    setIsCanCancel(false); // Reset ban đầu
+    setIsCanCancel(false); // Reset trạng thái ban đầu
+    if (!lucidNeworkPlatform || !walletItem.walletAddress) return;
   
-    if (lucidNeworkPlatform&&walletItem.walletAddress) {
+    if (!searchValue) {
+      setNotification("Vui lòng nhập địa chỉ ví hợp lệ.");
+      return;
+    }
+  
+    const inputAddress = searchValue.trim().toLowerCase();
+    const userAddress = walletItem.walletAddress.toLowerCase();
+  
+    if (inputAddress === userAddress) {
+      setNotification("Đây là ví của bạn. Không cần cấp quyền xem hồ sơ!!! Vui lòng nhập ví khác để truy cập hồ sơ.");
+      return;
+    }
+  
+    try {
       setIsLoading(true);
-      if (searchValue) {
-        if (searchValue.trim().toLowerCase() === walletItem.walletAddress?.toLowerCase()) {
-          setNotification("Đây là ví của bạn. Không cần cấp quyền xem hồ sơ!!! Vui lòng nhập ví khác để truy cập hồ sơ.");
-          setIsLoading(false);
-          return;
+      const assetData = await getAllAsset(searchValue);
+  
+      const utxosRequest = await getListUtxoFromRequestContractByAddress({
+        lucid: lucidNeworkPlatform,
+        addressRequestor: walletItem.walletAddress,
+      });
+  
+      const utxosGrant = await getListUtxoFromGrantContractByAddress({
+        lucid: lucidNeworkPlatform,
+        addressRequestor: walletItem.walletAddress,
+      });
+  
+      let canCancel = false;
+  
+      assetData.forEach((med) => {
+        const matchingGrant = utxosGrant.find(
+          (grant) => grant.policyIdMedRecord === med.policyId
+        );
+  
+        if (matchingGrant) {
+          med.encryptAesKeyGranted = matchingGrant.encyptAesKey;
+          med.encryptNonceGranted = matchingGrant.nonceAccess;
         }
   
-        try {
-          const assetData = await getAllAsset(searchValue);
-          const utxos = await getListUtxoFromRequestContractByAddress(lucidNeworkPlatform, walletItem.walletAddress);
+        const matchingRequest = utxosRequest.find(
+          (request) => request.policyIdMedRecord === med.policyId
+        );
   
-          if (utxos && utxos.length > 0) {
-            setIsCanCancel(true);
-          } else {
-            setIsCanCancel(false);
-          }
+        med.isRequested = !!matchingRequest;
   
-          if (assetData && assetData.length > 0) {
-            setAddressFix(searchValue);
-            setAssets(assetData);
-            setNotification("");
-          } else {
-            setNotification("Không có hồ sơ nào hoặc địa chỉ không hợp lệ.");
-          }
-        } catch (error) {
-          console.log(error);
-          setNotification("Không thể tải tài sản! Địa chỉ nhập không hợp lệ hoặc lỗi dữ liệu onchain!!!");
+        // ✅ Chỉ cho phép huỷ nếu đã yêu cầu và chưa được cấp quyền
+        if (matchingRequest && !matchingGrant?.nonceAccess) {
+          canCancel = true;
         }
-  
-        setIsLoading(false);
+      });
+      
+      setIsCanCancel(canCancel);
+      console.log(assetData)
+      if (assetData.length > 0) {
+        setAddressFix(searchValue);
+        setAssets(assetData);
+        setNotification("");
       } else {
-        setNotification("Vui lòng nhập địa chỉ ví hợp lệ.");
+        setNotification("Không có hồ sơ nào hoặc địa chỉ không hợp lệ.");
       }
+    } catch (error) {
+      console.error(error);
+      setNotification("Không thể tải tài sản! Địa chỉ nhập không hợp lệ hoặc lỗi dữ liệu onchain!!!");
+    } finally {
+      setIsLoading(false);
     }
   };
+  
   
 
   const handleCancelAllRequest=async ()=>{
@@ -115,6 +166,9 @@ export default function Home() {
       if(txHash){
         toast.success("Đã hủy yêu cầu thành công!!!");
         setIsCanCancel(false);
+      }
+      else{
+        toast.error("Không thành công!!!");
       }
       setIsLoading(false);
     } 
@@ -190,7 +244,7 @@ export default function Home() {
           className="w-full sm:w-1/2 mx-auto border-indigo-600/50 text-indigo-300 hover:bg-indigo-800"
           onClick={handleCancelAllRequest}
         >
-          ❌ Hủy tất cả yêu cầu
+          Hủy tất cả yêu cầu
         </Button>
           }
         </div>
@@ -202,21 +256,10 @@ export default function Home() {
           <NFTCard
               key={asset.asset}
               medRecord={{
-                asset: asset.asset || "", // assetName là tên của tài sản
-                assetName: asset.assetName || "", // assetName của asset (dạng hex)
-                policyId: asset.policyId || "", // policy_id của asset
-                mediaType: asset.mediaType || "", // mediaType trong onchain metadata
-                title: asset.title || "", // Tên tài sản trong metadata
-                date: asset.date || "", // Ngày khám từ metadata
-                hospitalName: asset.hospitalName || "", // Tên bệnh viện
-                hashCIP: asset.hashCIP || "", // hashCIP từ metadata
-                encryptKey: asset.encryptKey || "", // Encrypt key từ metadata
-                documentType: asset.documentType || "", // Loại tài liệu (medRecord)
-                documentLink: asset.documentLink || "", // Đường dẫn tài liệu IPFS
-                description: asset.description || "", // Mô tả tài liệu
+                ...asset,
                 ownerAddress:addressFix,
               }}
-              isCardMedRecord={true} // Thêm thông tin cho loại card là medRecord
+              isCardRequest={true} // Thêm thông tin cho loại card là medRecord
             />
 
         ))}

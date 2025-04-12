@@ -73,6 +73,7 @@ const ConnectWallet = () => {
     try {
       setIsShowWallet(false) // Ẩn thông tin ví khi ngắt kết nối
       await disconnectWallet()
+      router.push("/");
     } catch (error) {
       console.error(error)
       toast.error("Disconnecting failed!", {

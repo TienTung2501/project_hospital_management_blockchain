@@ -11,7 +11,9 @@ import { useRouter } from "next/navigation";
 import { toast } from "react-toastify";
 import { cancelRequest, sendRequest } from "@/actions/requestMedRecord";
 import { Lucid } from "lucid-cardano";
-import { filterUtxoByPolicyIdFromAddress, filterUtxoByPolicyIdMedRecordFromRequestContract, getListUtxoFromRequestContractByAddress, getUtxoFromGrantContractByAddress } from "@/helpers/findUtxoOnSmartContract";
+import { filterUtxoByPolicyIdFromAddress, filterUtxoByPolicyIdMedRecordFromRequestContract, getListUtxoFromRequestContractByAddress } from "@/helpers/findUtxoOnSmartContract";
+import { handleViewProcessing } from "@/actions/viewProcessing/handleViewProcessing";
+import { getEcPrivateKeyByAddress, getX25519PrivateKeyByAddress } from "@/utils/test/getKey";
 
 type NFTCardProps = {
   medRecord: medRecord;  // Sử dụng medRecord làm prop chính
@@ -38,7 +40,10 @@ export default function NFTCard({
       return;
     }
     if(walletItem.walletAddress&&isConnected){
-      const utxoList:UtxoRequest[]=await getListUtxoFromRequestContractByAddress(lucidNeworkPlatform,walletItem.walletAddress)
+      const utxoList:UtxoRequest[]=await getListUtxoFromRequestContractByAddress({
+                lucid: lucidNeworkPlatform,
+                addressRequestor: walletItem.walletAddress,
+              });
       const utxo= filterUtxoByPolicyIdMedRecordFromRequestContract(utxoList,medRecord.policyId)
       if(utxo.length>0){
         toast.error("Hồ sơ đã được yêu cầu quyền trước đó không cần yêu cầu nữa!!!");
@@ -72,7 +77,7 @@ export default function NFTCard({
         title: medRecord.title,
         policyId:policyId,
         policyIdMedRecord: medRecord.policyId,
-        ownerAddress: medRecord.ownerAddress,
+        ownerAddress: medRecord.ownerAddress!,
         requestorAddress: walletItem.walletAddress,
       });
       if(txHash){
@@ -86,7 +91,10 @@ export default function NFTCard({
       toast.error("Vui lòng kết nối ví để thực hiện công việc!");
     }
     if(walletItem.walletAddress&&isConnected){
-      const utxoList:UtxoRequest[]=await getListUtxoFromRequestContractByAddress(lucidNeworkPlatform,walletItem.walletAddress)
+      const utxoList:UtxoRequest[]=await getListUtxoFromRequestContractByAddress({
+                lucid: lucidNeworkPlatform,
+                addressRequestor: walletItem.walletAddress,
+              });
       const utxo= filterUtxoByPolicyIdMedRecordFromRequestContract(utxoList,medRecord.policyId)
       if(!utxo){
         toast.error("Bạn chưa yêu cầu nên không thể hủy!!!");
@@ -105,18 +113,64 @@ export default function NFTCard({
       setIsLoading(false);
     } 
   }
-  const handleResponeAccess=()=>{
-    if(!isConnected){
-      toast.error("Vui lòng kết nối ví để thực hiện công việc!");
+  const isOwner = (medRecord: medRecord, walletAddress: string): boolean => {
+    // Kiểm tra xem ownerAddress có tồn tại và so sánh
+    return medRecord.ownerAddress?.toLowerCase() === walletAddress.toLowerCase();
+  };
+  const handleView = async () => {
+    try {
+      // Lấy khóa riêng từ ví
+      setIsLoading(true);
+      const privateEcKey = await getEcPrivateKeyByAddress(walletItem.walletAddress!);
+      const privateX25519Key = await getX25519PrivateKeyByAddress(walletItem.walletAddress!);
+  
+      // Kiểm tra người dùng có phải chủ sở hữu hồ sơ không
+      const isOwnerFlag = isOwner(medRecord, walletItem.walletAddress!);
+  
+      // Gửi yêu cầu đến API để xử lý giải mã
+      if (medRecord.encryptNonceGranted || medRecord.encryptAesKeyGranted||isOwnerFlag){
+        const response = await fetch(`/api/viewProcessing`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          
+          body: JSON.stringify({
+            userPrivateKey: isOwnerFlag ? privateX25519Key : privateEcKey,
+            encryptKey: isOwnerFlag ? medRecord.encryptKey : "",
+            encryptNonce: isOwnerFlag ? medRecord.encryptNonce : "",
+            ephemeralPublicKey: isOwnerFlag ? medRecord.ephemeralPublicKey : "",
+            encryptAesKeyGranted: !isOwnerFlag ? medRecord.encryptAesKeyGranted : "",
+            encryptNonceGranted: !isOwnerFlag ? medRecord.encryptNonceGranted : "",
+            publicKeyEcGrant: !isOwnerFlag ? medRecord.publicKeyEcGrant : "",
+            ipfsCid: medRecord.hashCIP,
+          }),
+        });
+        const data = await response.json();
+
+        if (data.success && data.data) {
+          const byteCharacters = atob(data.data);
+          const byteNumbers = new Array(byteCharacters.length).fill(0).map((_, i) => byteCharacters.charCodeAt(i));
+          const byteArray = new Uint8Array(byteNumbers);
+          const blob = new Blob([byteArray], { type: 'application/pdf' }); // hoặc thay đổi type nếu cần
+          const blobUrl = URL.createObjectURL(blob);
+        
+          localStorage.setItem("decryptedFileUrl", blobUrl);
+          
+        }
+      }
+      setIsLoading(false);
+      router.push(`/show/${medRecord.hashCIP}`);
+      
+
+    } catch (error) {
+      // Bắt lỗi và log ra console
+      console.error("Lỗi xảy ra khi xử lý xem:", error);
+      toast.error("Đã xảy ra lỗi trong quá trình xử lý.");
     }
-    console.log("medRecord access: ",medRecord)
-  }
-  const handleRevokeAccess=()=>{
-    if(!isConnected){
-      toast.error("Vui lòng kết nối ví để thực hiện công việc!");
-    }
-    console.log("medRecord access: ",medRecord)
-  }
+  };
+  
+  
   return (
 <div className="bg-indigo-900/30 rounded-xl overflow-hidden backdrop-blur-sm flex flex-col">
   <div className="relative">
@@ -158,38 +212,46 @@ export default function NFTCard({
       <Button
         variant="outline"
         className="w-full border-indigo-600/50 text-indigo-300 hover:bg-indigo-800"
-        onClick={() => router.push(`/show/${medRecord.hashCIP}?param=${medRecord.encryptKey}`)}
+        // onClick={() => router.push(`/show/${medRecord.hashCIP}?param=${medRecord.encryptKey}`)}
+        onClick={handleView}
       >
         Xem chi tiết
       </Button>
-      <Button
-        variant="outline"
-        className="w-full border-indigo-600/50 text-indigo-300 hover:bg-indigo-800"
-        onClick={handleRequestAccess}
-      >
-        Yêu cầu xem
-      </Button>
-      <Button
-        variant="outline"
-        className="w-full border-indigo-600/50 text-indigo-300 hover:bg-indigo-800"
-        onClick={handleCancelRequestAccess}
-      >
-        Hủy yêu cầu
-      </Button>
-      <Button
-        variant="outline"
-        className="w-full border-indigo-600/50 text-indigo-300 hover:bg-indigo-800"
-        onClick={handleResponeAccess}
-      >
-        Cấp quyền
-      </Button>
-      <Button
-        variant="outline"
-        className="w-full border-indigo-600/50 text-indigo-300 hover:bg-indigo-800"
-        onClick={handleRevokeAccess}
-      >
-        Thu hồi
-      </Button>
+      {
+        isCardRequest&&
+        <div>
+         <Button
+          variant="outline"
+          className="w-full border-indigo-600/50 text-indigo-300 hover:bg-indigo-800"
+          onClick={handleRequestAccess}
+          disabled={!medRecord.isRequested || !!medRecord.encryptNonceGranted}
+        >
+          {medRecord.isRequested ? (
+            medRecord.encryptNonce
+              ? "Đã được cấp quyền"
+              : "Đã yêu cầu! Đợi phản hồi"
+          ) : (
+            "Yêu cầu xem"
+          )}
+        </Button>
+
+        {medRecord.isRequested && (
+            <Button
+              variant="outline"
+              className="w-full border-indigo-600/50 text-indigo-300 hover:bg-indigo-800"
+              onClick={
+                medRecord.encryptNonceGranted
+                  ? () => toast.error("Không thể hủy! Hồ sơ đã được cấp quyền.")
+                  : handleCancelRequestAccess
+              }
+              disabled={!!medRecord.encryptNonceGranted}
+            >
+              Hủy yêu cầu
+            </Button>
+          )}
+        </div>
+      }
+     
     </div>
   </div>
 </div>

@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useContext } from 'react';
 import NFTCard from '@/components/nft-card';
-import { AssetType, medRecord } from '@/types/GenericsType';
+import { AssetType, medRecord, medRecordRequest } from '@/types/GenericsType';
 import { getAllAsset } from '@/helpers/fetchAsset/fetchAssetsFromAddress';
 import { toast } from 'react-toastify';
 import { LucidContextType } from '@/types/LucidContextType';
@@ -11,23 +11,51 @@ import { PagePagination } from '@/components/PagePagination';
 import { Button } from '@/components/ui/button';
 import mintTokenService from '@/services/cardano/mintoken';
 import mintAsset from '@/services/cardano/mintAsset';
+import { getListUtxoFromGrantContractByAddress, getListUtxoFromRequestContractByAddress } from '@/helpers/findUtxoOnSmartContract';
+import RequestCard from '@/components/request-card';
 
 const Profile_Created = () => {
   const [assets, setAssets] = useState<medRecord[]>([]);
+  const [assetRequests, setAssetRequests] = useState<medRecordRequest[]>([]);
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [addressFix, setAddressFix] = useState<string>("");
   const itemsPerPage = 8; // Số lượng items mỗi trang
-  const { isConnected,refreshWallet, connectWallet, disconnectWallet, walletItem, setWalletItem,setIsLoading, loadingConnectWallet,lucidNeworkPlatform } = useContext<LucidContextType>(LucidContext);
-    
+  const {isConnected,refreshWallet, connectWallet, disconnectWallet, walletItem, setWalletItem,setIsLoading, loadingConnectWallet,lucidNeworkPlatform } = useContext<LucidContextType>(LucidContext);
+  const [notification, setNotification] = useState<string>("");
   
   useEffect(() => {
     const fetchDataAsset = async () => {
+      
       if (lucidNeworkPlatform && isConnected && walletItem.walletAddress) {
         try {
+          setIsLoading(true)
           const assetData = await getAllAsset(walletItem.walletAddress);
+          const utxosRequest = await getListUtxoFromRequestContractByAddress({
+            lucid: lucidNeworkPlatform,
+            addressGrantor: walletItem.walletAddress,
+          });
+          const utxosGrant= await getListUtxoFromGrantContractByAddress({
+            lucid: lucidNeworkPlatform,
+            addressGrantor: walletItem.walletAddress,
+        });
+          const medRecordRequests: medRecordRequest[] = [];
+
+          for (const utxo of utxosRequest) {
+            const matchedAsset = assetData.find((record) => record.policyId === utxo.policyIdMedRecord);
+            if (matchedAsset) {
+              medRecordRequests.push({
+                ...matchedAsset,
+                policyIdMedRecord: utxo.policyIdMedRecord,
+                requestorAddress: utxo.requestorAddress,
+                requestorPublicKey: utxo.requestorPublicKey,
+              });
+            }
+          }
+          console.log(assetData)
+          setAssetRequests(medRecordRequests);
           setAddressFix(walletItem.walletAddress);
-          console.log("number asset:", assetData);
           setAssets(assetData);
+          setIsLoading(false)
         } catch (error) {
           console.log(error);
           toast.error("Không thể tải tài sản!");
@@ -49,91 +77,83 @@ const Profile_Created = () => {
   const handlePageChange = (page: number) => {
     setCurrentPage(page);
   };
-  const handleSubmit = async () => {
-    // Thu thập dữ liệu từ form
+  
 
+return (
+  <div className="flex flex-col items-center min-h-screen px-4 py-10 sm:px-20 gap-16">
+    <main className="w-full max-w-7xl flex flex-col gap-10">
+      {isConnected ? (
+        <>
+          {assetRequests.length > 0 && (
+            <section className="mb-12">
+              <h2 className="text-2xl font-bold text-white mb-6">Danh sách yêu cầu</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {assetRequests.map((request) => (
+                  <RequestCard key={request.asset} request={request} />
+                ))}
+              </div>
+              <div className="text-center mt-6">
+                <div id="area-pagination" className="flex justify-center pt-8">
+                  <PagePagination
+                    totalItems={assetRequests.length}
+                    itemsPerPage={itemsPerPage}
+                    currentPage={currentPage}
+                    onPageChange={handlePageChange}
+                  />
+                </div>
+              </div>
+            </section>
+          )}
 
-// Kiểm tra điều kiện trước khi gửi dữ liệu (ví dụ: nếu chưa kết nối ví, cần yêu cầu kết nối)
-if (!lucidNeworkPlatform || walletItem.walletAddress === "") {
-  toast.error("Làm ơn! Hãy kết nối ví trước khi thực hiện điều này");
-  return;
-}
-
-
-
-try {
-  // Minting asset (ví dụ: sử dụng API mintAsset)
-  const mintRes = await mintAsset({
-    lucid: lucidNeworkPlatform,
-    title:"test mint token",
-    label:1,
-  });
-
-  if (!mintRes.txHash) {
-    throw new Error("Minting asset failed");
-  }
-  setIsLoading(false);
-  toast.success("Minting asset successfully!");
-} catch (error) {
-  toast.error("Error during minting!");
-} finally {
-}
-};
-  return (
-    <div className="flex flex-col items-center min-h-screen px-4 py-10 sm:px-20 gap-16">
-  <main className="w-full max-w-7xl flex flex-col gap-10">
-    {isConnected ? (
-      <>
-        <Button
-          variant="outline"
-          className="w-full border-indigo-600/50 text-indigo-300 hover:bg-indigo-800"
-          onClick={handleSubmit}
-        >
-          Mint token
-        </Button>
-        <div id="area-bidding-list" className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-5">
-          {currentItems.map((asset) => (
-            <NFTCard
-                         key={asset.asset}
-                         medRecord={{
-                           asset: asset.asset || "", // assetName là tên của tài sản
-                           assetName: asset.assetName || "", // assetName của asset (dạng hex)
-                           policyId: asset.policyId || "", // policy_id của asset
-                           mediaType: asset.mediaType || "", // mediaType trong onchain metadata
-                           title: asset.title || "", // Tên tài sản trong metadata
-                           date: asset.date || "", // Ngày khám từ metadata
-                           hospitalName: asset.hospitalName || "", // Tên bệnh viện
-                           hashCIP: asset.hashCIP || "", // hashCIP từ metadata
-                           encryptKey: asset.encryptKey || "", // Encrypt key từ metadata
-                           documentType: asset.documentType || "", // Loại tài liệu (medRecord)
-                           documentLink: asset.documentLink || "", // Đường dẫn tài liệu IPFS
-                           description: asset.description || "", // Mô tả tài liệu
-                           ownerAddress:addressFix,
-                         }}
-                         isCardMedRecord={true} // Thêm thông tin cho loại card là medRecord
-                       />
-          ))}
+          {
+            assets.length>0&&
+            <section className="mb-12">
+            <h2 className="text-2xl font-bold text-white mb-6">Danh sách hồ sơ</h2>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+              {currentItems.map((asset) => (
+                <NFTCard
+                  key={asset.asset}
+                  medRecord={{
+                    asset: asset.asset || "",
+                    assetName: asset.assetName || "",
+                    policyId: asset.policyId || "",
+                    mediaType: asset.mediaType || "",
+                    title: asset.title || "",
+                    date: asset.date || "",
+                    hospitalName: asset.hospitalName || "",
+                    hashCIP: asset.hashCIP || "",
+                    encryptKey: asset.encryptKey || "",
+                    documentType: asset.documentType || "",
+                    documentLink: asset.documentLink || "",
+                    description: asset.description || "",
+                    ephemeralPublicKey: asset.ephemeralPublicKey || "",
+                    encryptNonce: asset.encryptNonce || "",
+                    ownerAddress: addressFix,
+                  }}
+                  isCardMedRecord={true}
+                />
+              ))}
+              <div id="area-pagination" className="flex justify-center pt-8">
+                <PagePagination
+                  totalItems={assets.length}
+                  itemsPerPage={itemsPerPage}
+                  currentPage={currentPage}
+                  onPageChange={handlePageChange}
+                />
+              </div>
+            </div>
+          </section>
+          }
+        </>
+      ) : (
+        <div className="mt-4 p-4 bg-gray-600 text-white rounded pt-4">
+          Vui lòng connect ví để xem chi tiết!!!
         </div>
-          
-        <div id="area-pagination" className="flex justify-center pt-8">
-          <PagePagination
-            totalItems={assets.length}
-            itemsPerPage={itemsPerPage}
-            currentPage={currentPage}
-            onPageChange={handlePageChange}
-          />
-        </div>
-      </>
-    ) : (
-      <div className="mt-4 p-4 bg-gray-600 text-white rounded pt-4">
-      Vui lòng connect ví để xem chi tiết!!!
-    </div>
-      
-    )}
-  </main>
-</div>
+      )}
+    </main>
+  </div>
+);
 
-  );
 };
 
 export default Profile_Created;

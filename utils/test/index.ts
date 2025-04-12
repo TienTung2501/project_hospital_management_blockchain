@@ -65,7 +65,7 @@ async function main() {
   console.log("Nonce gửi kèm:", accessNonce);
 
   // ✅ Step 5: Người nhận giải mã AES Key
-  const decryptedKeyEC = decryptAESKey(
+  const decryptedKeyEC = decryptAESKey(      // ✅ Step 5: Người nhận giải mã AES Key phải chuyển encrypt hex to base
     encryptedAESKey,
     accessNonce,
     privateEcRequest!,
