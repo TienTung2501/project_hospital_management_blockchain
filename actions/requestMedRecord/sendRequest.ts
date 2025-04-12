@@ -22,7 +22,7 @@ export async function sendRequest({
 }: SendRequestParams) {
   try {
     // 🔑 Lấy public key từ file keypair lưu local
-    const publicEcRequest = getEcPublicKeyByAddress(requestorAddress)!;
+    const publicEcRequest = await getEcPublicKeyByAddress(requestorAddress)!;
     
 
     // Gọi lockRequest để thực hiện mint & lock token
@@ -32,7 +32,7 @@ export async function sendRequest({
       policyId,
       policyIdMedRecord,
       ownerAddress,
-      requestorPublicKey:publicEcRequest,
+      requestorPublicKey:publicEcRequest!,
     });
 
     return result;

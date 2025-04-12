@@ -18,7 +18,7 @@ import mintAsset from "@/services/cardano/mintAsset";
 import { postCloudPinata } from "@/services/pinata/pinata";
 import { encryptFile } from "@/helpers/utils";
 import CryptoJS from "crypto-js";
-import { getEcPublicKeyByAddress } from "@/utils/test/getKey"
+import {  getX25519PublicKeyByAddress } from "@/utils/test/getKey"
 import { selfEncryptAESKeyWithX25519 } from "@/utils/test/encrypt"
 
 
@@ -36,7 +36,7 @@ const removeAccents = (str: string) =>
 export default function CreatePage() {
 
   const [customFields, setCustomFields] = useState<{ name: string; value: string }[]>([{ name: "", value: "" }])
-  const {lucidWallet, walletItem ,setIsLoading} = useContext<LucidContextType>(LucidContext);
+  const {lucidNeworkPlatform, walletItem ,setIsLoading} = useContext<LucidContextType>(LucidContext);
   const [title, setTitle] = useState("");
   const [hospitalName, setHospitalName] = useState("");
   const [description, setDescription] = useState("");
@@ -103,7 +103,7 @@ export default function CreatePage() {
 
 
     // Kiểm tra điều kiện trước khi gửi dữ liệu (ví dụ: nếu chưa kết nối ví, cần yêu cầu kết nối)
-    if (!lucidWallet || walletItem.walletAddress === "") {
+    if (!lucidNeworkPlatform || walletItem.walletAddress === "") {
       toast.error("Làm ơn! Hãy kết nối ví trước khi thực hiện điều này");
       return;
     }
@@ -122,7 +122,7 @@ export default function CreatePage() {
       const aesKey = CryptoJS.lib.WordArray.random(16).toString();
       const encryptedFile = await encryptFile(image as File, aesKey);
       const encryptedFileName = `encrypted_${image?.name}`;
-      const publicKeyGrant = await getEcPublicKeyByAddress(walletItem.walletAddress!)!;
+      const publicKeyGrant = await getX25519PublicKeyByAddress(walletItem.walletAddress!)!;
       const encypted = selfEncryptAESKeyWithX25519(aesKey, publicKeyGrant!);
       const encryptAESKey=encypted.ciphertextHex;
       const encryptNonce=encypted.nonceHex;
@@ -143,7 +143,7 @@ export default function CreatePage() {
 
       // // Minting asset (ví dụ: sử dụng API mintAsset)
       const mintRes = await mintAsset({
-        lucid: lucidWallet,
+        lucid: lucidNeworkPlatform,
         customMetadata,
         description,
         imageUrl: "ipfs://" + uploadRes.IpfsHash,
@@ -159,6 +159,7 @@ export default function CreatePage() {
       toast.success("Minting asset successfully!");
       resetForm();
     } catch (error) {
+      console.log(error)
       toast.error("Error during minting!");
     } finally {
     }
