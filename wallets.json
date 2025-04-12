@@ -1,0 +1,18 @@
+[
+  {
+    "mnemonic": "initial seed amateur convince flush desert clinic boat left cruise abandon turtle",
+    "address": "addr_test1qqja25tffmwywjufeycgn86zj7slfj9w4wh5a7ft4png47ue0r2q9x4995mt5xscmehf5swm6qx4flkg98euf3rk45usuerp08",
+    "ecPrivateKeyHex": "42dd08c190011b5de5b8058bf4581e77ccf47dceae55e1f26016619f2a0f92ca",
+    "ecPublicKeyHex": "03fbdb9b32db4e60a89dc030ce9c9836482e3a25569f5161a0a091d3c119804502",
+    "x25519PrivateKeyHex": "42dd08c190011b5de5b8058bf4581e77ccf47dceae55e1f26016619f2a0f92ca",
+    "x25519PublicKeyHex": "5e6bd4e2c5c23861942b76d6e04ead5c90d11ee2e96e5481ded6a5c4ef792e32"
+  },
+  {
+    "mnemonic": "they warfare clutch trim display sister put sail sun left speed lake",
+    "address": "addr_test1qrd8ej20lpv6v5vekyl3jjf2t6epx55z4vpzkj5vek4cv36nj58977vmtk2mhlgcw3s5452csfn0up8mewunxhm95tqqxesdk6",
+    "ecPrivateKeyHex": "dd72dd995f879315572203f30eb7153885043008cc9b7770c5113780d5c08921",
+    "ecPublicKeyHex": "029952c5525dbac4987bf7f81c72c78d41a759210341e6aebcaa88aa942d08f472",
+    "x25519PrivateKeyHex": "dd72dd995f879315572203f30eb7153885043008cc9b7770c5113780d5c08921",
+    "x25519PublicKeyHex": "3f163db848dcbbcc6f8a918d44d79642874a7050530da6aca3d9bdf152517d6e"
+  }
+]

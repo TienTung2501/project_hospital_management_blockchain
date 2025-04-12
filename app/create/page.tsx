@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import type React from "react"
 
@@ -18,6 +18,9 @@ import mintAsset from "@/services/cardano/mintAsset";
 import { postCloudPinata } from "@/services/pinata/pinata";
 import { encryptFile } from "@/helpers/utils";
 import CryptoJS from "crypto-js";
+import { getEcPublicKeyByAddress } from "@/utils/test/getKey"
+import { selfEncryptAESKeyWithX25519 } from "@/utils/test/encrypt"
+
 
 function convertMetadataToObj(metadataArray: MetadataObject[]) {
   const resultObj: Record<string, string> = {};
@@ -119,18 +122,26 @@ export default function CreatePage() {
       const aesKey = CryptoJS.lib.WordArray.random(16).toString();
       const encryptedFile = await encryptFile(image as File, aesKey);
       const encryptedFileName = `encrypted_${image?.name}`;
+      const publicKeyGrant = await getEcPublicKeyByAddress(walletItem.walletAddress!)!;
+      const encypted = selfEncryptAESKeyWithX25519(aesKey, publicKeyGrant!);
+      const encryptAESKey=encypted.ciphertextHex;
+      const encryptNonce=encypted.nonceHex;
+      const ephemeralPublicKey=encypted.ephemeralPublicKeyHex;
+ 
       // Upload lên Pinata (hoặc dịch vụ khác)
       const formDataForPinata = new FormData();
       formDataForPinata.append("file", encryptedFile,encryptedFileName);
       const uploadRes = await postCloudPinata(formDataForPinata);
-      customMetadata['encryptKey'] = aesKey; // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
+      customMetadata['encryptKey'] = encryptAESKey; // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
+      customMetadata['encryptNonce'] = encryptNonce; // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
+      customMetadata['ephemeralPublicKey'] = ephemeralPublicKey; // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
       customMetadata['hashCIP'] = uploadRes.IpfsHash; // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
       customMetadata['date'] = dateOfDocument; // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
       customMetadata['hospitalName'] = removeAccents(hospitalName); // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
       customMetadata['documentType'] = "medRecord"; // Thêm key vào customMetadata (thay 'some_key_value' bằng giá trị thực tế nếu cần)
  
 
-      // Minting asset (ví dụ: sử dụng API mintAsset)
+      // // Minting asset (ví dụ: sử dụng API mintAsset)
       const mintRes = await mintAsset({
         lucid: lucidWallet,
         customMetadata,

@@ -5,7 +5,9 @@ const nextConfig: import('next').NextConfig = {
       'ivory-deaf-guineafowl-894.mypinata.cloud',
       // Thêm các domain khác nếu cần
     ],
+    
   },
+  
 }
 
 module.exports = nextConfig
