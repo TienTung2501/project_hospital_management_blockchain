@@ -126,7 +126,6 @@ export default function NFTCard({
   
       // Kiểm tra người dùng có phải chủ sở hữu hồ sơ không
       const isOwnerFlag = isOwner(medRecord, walletItem.walletAddress!);
-  
       // Gửi yêu cầu đến API để xử lý giải mã
       if (medRecord.encryptNonceGranted || medRecord.encryptAesKeyGranted||isOwnerFlag){
         const response = await fetch(`/api/viewProcessing`, {
@@ -224,7 +223,7 @@ export default function NFTCard({
           variant="outline"
           className="w-full border-indigo-600/50 text-indigo-300 hover:bg-indigo-800"
           onClick={handleRequestAccess}
-          disabled={!medRecord.isRequested || !!medRecord.encryptNonceGranted}
+          disabled={medRecord.isRequested || !!medRecord.encryptNonceGranted}
         >
           {medRecord.isRequested ? (
             medRecord.encryptNonce

@@ -38,9 +38,8 @@ export default function Home() {
           lucid: lucidNeworkPlatform,
           addressRequestor: walletItem.walletAddress,
         });
-  
+        
         let canCancel = false;
-  
         assetData.forEach((med) => {
           const matchingGrant = utxosGrant.find(
             (grant) => grant.policyIdMedRecord === med.policyId
@@ -48,19 +47,19 @@ export default function Home() {
           if (matchingGrant) {
             med.encryptAesKeyGranted = matchingGrant.encyptAesKey;
             med.encryptNonceGranted = matchingGrant.nonceAccess;
+            med.publicKeyEcGrant = matchingGrant.publicKeyEcGrant;
           }
-  
+        
           const matchingRequest = utxosRequest.find(
             (request) => request.policyIdMedRecord === med.policyId
           );
+        
           med.isRequested = !!matchingRequest;
-  
-          // 🧠 Chỉ có thể hủy nếu đã yêu cầu và chưa được cấp quyền
+        
           if (matchingRequest && !matchingGrant?.nonceAccess) {
             canCancel = true;
           }
         });
-  
         setIsCanCancel(canCancel); // ✅ Cập nhật trạng thái có thể hủy
       } catch (error) {
         console.error("Lỗi khi kiểm tra UTxO:", error);
@@ -118,6 +117,7 @@ export default function Home() {
         if (matchingGrant) {
           med.encryptAesKeyGranted = matchingGrant.encyptAesKey;
           med.encryptNonceGranted = matchingGrant.nonceAccess;
+          med.publicKeyEcGrant = matchingGrant.publicKeyEcGrant;
         }
   
         const matchingRequest = utxosRequest.find(

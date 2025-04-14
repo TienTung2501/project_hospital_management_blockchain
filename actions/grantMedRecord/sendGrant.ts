@@ -1,7 +1,7 @@
 "server onlly";
 import { Lucid } from "lucid-cardano";
 import lockGrant from "@/services/cardano/lockGrant";
-import { getEcPrivateKeyByAddress, getX25519PrivateKeyByAddress } from "@/utils/test/getKey";
+import { getEcPrivateKeyByAddress, getEcPublicKeyByAddress, getX25519PrivateKeyByAddress } from "@/utils/test/getKey";
 import { selfDecryptAESKeyWithX25519 } from "@/utils/test/encrypt";
 import { AppRouterInstance } from "next/dist/shared/lib/app-router-context.shared-runtime";
 import { encryptAESKey } from "@/utils/test/cryptEc";
@@ -12,6 +12,7 @@ type SendGrantParams = {
   router: AppRouterInstance; // 👈 nhận router
   lucid: Lucid;
   title: string;
+  policyId?: string;
   policyIdMedRecord: string;
   requestorAddress: string; // địa chỉ người yêu cầu
   requestorPublicKey: string; // địa chỉ người yêu cầu
@@ -25,6 +26,7 @@ export async function sendGrant({
   router,
   lucid,
   title,
+  policyId,
   policyIdMedRecord,
   requestorAddress,
   requestorPublicKey,
@@ -39,6 +41,7 @@ export async function sendGrant({
     const privateX25519Grant = await getX25519PrivateKeyByAddress(address)!;
     const publicEcRequest = requestorPublicKey;
     const privateEcGrant = await getEcPrivateKeyByAddress(address)!;
+    const publicKeyEcGrant = await getEcPublicKeyByAddress(address)!;
     const decryptedKey = selfDecryptAESKeyWithX25519(
       encryptKeyOnchain,
       encryptNonce,
@@ -57,8 +60,10 @@ export async function sendGrant({
     const result = await lockGrant({
       lucid,
       title,
+      policyId,
       policyIdMedRecord,
       requestorAddress,
+      publicKeyEcGrant:publicKeyEcGrant!,
       encyptAesKey:base64ToHex(encryptedAESKey),
       nonceAccess:accessNonce,
     });

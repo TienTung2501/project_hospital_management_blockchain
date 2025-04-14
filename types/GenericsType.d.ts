@@ -67,6 +67,7 @@ export type medRecord = {
     encryptNonceGranted?:string;//in onchain metadata
     publicKeyEcGrant?:string;//in onchain metadata
     isRequested?:boolean;
+    isGranted?:boolean;
 };
 export type UtxoRequest={
     policyId: string,
@@ -86,6 +87,7 @@ export type UtxoGrant={
     ownerAddress: string,
     encyptAesKey: string,
     nonceAccess: string,
+    publicKeyEcGrant:string,
 }
 type AssetType = {
     asset?: string;

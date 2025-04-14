@@ -76,7 +76,6 @@ export async function getListUtxoFromRequestContractByAddress({
       const datum = Data.from<DatumGrant>(utxo.datum!, DatumGrant);
   
       if (!datum) continue;
-  
       try {
         const parsed: UtxoGrant = {
           policyId: datum.policyId,
@@ -85,6 +84,7 @@ export async function getListUtxoFromRequestContractByAddress({
           title: Buffer.from(datum.assetName, 'hex').toString('utf8'),
           requestorAddress: getBech32FromAddress(lucid,datum.requestorAddress),
           ownerAddress: getBech32FromAddress(lucid,datum.ownerAddress),
+          publicKeyEcGrant:datum.publicKeyEcGrant,
           encyptAesKey: datum.encyptAesKey,
           nonceAccess: datum.nonceAccess,
         };

@@ -3,7 +3,7 @@ import unlockAccessUTxO from "@/services/cardano/unlockAsset";
 
 type CancelGrantParams = {
   lucid: Lucid;
-  requestorAddress: string;
+  grantorAddress: string;
   policyId?: string;
   assetName?: string;
   cancelAll?: boolean;
@@ -11,7 +11,7 @@ type CancelGrantParams = {
 
 export async function cancelGrant({
   lucid,
-  requestorAddress,
+  grantorAddress,
   policyId,
   assetName,
   cancelAll = false,
@@ -20,7 +20,7 @@ export async function cancelGrant({
     const result = await unlockAccessUTxO({
       lucid,
       userRole: "owner",
-      address: requestorAddress,
+      address: grantorAddress,
       policyId: cancelAll ? undefined : policyId,
       assetName: cancelAll ? undefined : assetName,
       unlockAll: cancelAll,

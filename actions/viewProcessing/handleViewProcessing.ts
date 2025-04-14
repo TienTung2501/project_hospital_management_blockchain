@@ -20,14 +20,14 @@ type ViewRequest = {
 export async function handleViewProcessing(input: ViewRequest) {
   try {
     let aesKey: string;
-
+    console.log("input: ",input);
     // 1. Giải mã AES key
     if (input.encryptAesKeyGranted && input.encryptNonceGranted) {
       // Người được cấp quyền
       aesKey = decryptAESKey(
-        input.encryptAesKeyGranted!,
+        hexToBase64(input.encryptAesKeyGranted!),
         input.encryptNonceGranted!,
-        hexToBase64(input.userPrivateKey!),
+        input.userPrivateKey!,
         input.publicKeyEcGrant!
       );
     } else if (input.ephemeralPublicKey && input.encryptNonce && input.encryptKey) {

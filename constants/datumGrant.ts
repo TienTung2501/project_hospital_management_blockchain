@@ -5,6 +5,7 @@ const DatumInitial = Data.Object({
     policyIdMedRecord:  Data.Bytes(),
     assetName:  Data.Bytes(),
     requestorAddress:  AddressSchema, 
+    publicKeyEcGrant:Data.Bytes(),
     ownerAddress:  AddressSchema,
     encyptAesKey: Data.Bytes(),
     nonceAccess: Data.Bytes(),
@@ -17,6 +18,7 @@ export function createDatumGrantSchema(
   policyIdMedRecord:string,
   assetName: string,
   requestorAddress: string,
+  publicKeyEcGrant:string,
   ownerAddress: string,
   encyptAesKey: string,
   nonceAccess: string,
@@ -34,6 +36,7 @@ export function createDatumGrantSchema(
           policyIdMedRecord:policyIdMedRecord,
           assetName: assetName,
           requestorAddress: requestor,
+          publicKeyEcGrant:publicKeyEcGrant,
           ownerAddress: owner,
           encyptAesKey,
           nonceAccess

@@ -35,7 +35,8 @@ async function unlockAccessUTxO({
 
     const matchedGrantUTxOs: UTxO[] = [];
     const matchedRequestUTxOs: UTxO[] = [];
-
+    console.log("allGrantUTxOs", allGrantUTxOs)
+    console.log("allRequestUTxOs", allRequestUTxOs)
     for (const utxo of allGrantUTxOs) {
       try {
         const datum:DatumGrant = Data.from<DatumGrant>(utxo.datum!, DatumGrant);
@@ -54,8 +55,8 @@ async function unlockAccessUTxO({
           for (const reqUTxO of allRequestUTxOs) {
             try {
               const reqDatum = Data.from<DatumRequest>(reqUTxO.datum!, DatumRequest);
-              const sameAsset = reqDatum.policyId === datum.policyId && reqDatum.assetName === datum.assetName;
-              const relatedAddress = reqDatum.requestorAddress === datum.requestorAddress;
+              const sameAsset = reqDatum.policyIdMedRecord === datum.policyIdMedRecord && reqDatum.assetName === datum.assetName;
+              const relatedAddress = getBech32FromAddress(lucid,datum.requestorAddress) === getBech32FromAddress(lucid,reqDatum.requestorAddress);
               if (sameAsset && relatedAddress) {
                 matchedRequestUTxOs.push(reqUTxO);
               }
@@ -96,7 +97,9 @@ async function unlockAccessUTxO({
     if (matchedRequestUTxOs.length > 0) {
       txBuilder.collectFrom(matchedRequestUTxOs, redeemer).attachSpendingValidator(validatorRequest);
     }
-
+    console.log("matchedGrantUTxOs", matchedGrantUTxOs)
+    console.log("matchedRequestUTxOs", matchedRequestUTxOs)
+    console.log(address)
     const tx = await txBuilder.addSigner(address).complete();
     const signedTx = await tx.sign().complete();
     const txHash = await signedTx.submit();

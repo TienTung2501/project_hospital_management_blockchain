@@ -30,27 +30,40 @@ const Profile_Created = () => {
         try {
           setIsLoading(true)
           const assetData = await getAllAsset(walletItem.walletAddress);
+
           const utxosRequest = await getListUtxoFromRequestContractByAddress({
             lucid: lucidNeworkPlatform,
             addressGrantor: walletItem.walletAddress,
           });
-          const utxosGrant= await getListUtxoFromGrantContractByAddress({
+
+          const utxosGrant = await getListUtxoFromGrantContractByAddress({
             lucid: lucidNeworkPlatform,
             addressGrantor: walletItem.walletAddress,
-        });
+          });
+
           const medRecordRequests: medRecordRequest[] = [];
 
           for (const utxo of utxosRequest) {
-            const matchedAsset = assetData.find((record) => record.policyId === utxo.policyIdMedRecord);
+            const matchedAsset = assetData.find(
+              (record) => record.policyId === utxo.policyIdMedRecord
+            );
+
             if (matchedAsset) {
+              // Kiểm tra xem utxo này có được cấp quyền chưa
+              const isGranted = utxosGrant.some(
+                (grant) => grant.policyIdMedRecord === utxo.policyIdMedRecord
+              );
+
               medRecordRequests.push({
                 ...matchedAsset,
                 policyIdMedRecord: utxo.policyIdMedRecord,
                 requestorAddress: utxo.requestorAddress,
                 requestorPublicKey: utxo.requestorPublicKey,
+                isGranted, // true nếu đã cấp quyền, false nếu chưa
               });
             }
           }
+
           console.log(assetData)
           setAssetRequests(medRecordRequests);
           setAddressFix(walletItem.walletAddress);
